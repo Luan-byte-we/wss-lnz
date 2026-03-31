@@ -1,256 +1,251 @@
 const express = require('express');
-const WebSocket = require('ws');
 const http = require('http');
+const WebSocket = require('ws');
 const path = require('path');
 
 const app = express();
-const port = process.env.PORT || 3000;
-
-// Configuração CORS
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, DELETE, PUT');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, x-admin-token');
-  next();
-});
+const server = http.createServer(app);
+const wss = new WebSocket.Server({ server, path: '/ws' });
+const panelWss = new WebSocket.Server({ server, path: '/panel-ws' });
 
 // Middleware
-app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.text({ limit: '10mb', type: '*/*' }));
+app.use(express.static(path.join(__dirname)));
 
-// Variáveis globais
-let brainrots = [];
-let activeBots = new Set();
-let startTime = Date.now();
+// CORS liberado
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, x-admin-token');
+    if (req.method === 'OPTIONS') {
+        return res.sendStatus(200);
+    }
+    next();
+});
+
+// Configuração
 const ADMIN_TOKEN = 'admin123';
+let brainrots = [];
+let startTime = Date.now();
+let connectedBots = new Set();
 
-// Detectar tipo de dados
-function detectDataType(data) {
-  try {
-    JSON.parse(data);
-    return 'JSON';
-  } catch {}
-  
-  if (typeof data === 'string') {
-    if (data.trim().startsWith('<')) return 'XML/HTML';
-    if (!isNaN(data)) return 'NUMBER';
-    return 'TEXT';
-  }
-  
-  return 'UNKNOWN';
-}
-
-// Criar servidor HTTP
-const server = http.createServer(app);
-
-// WebSocket para clientes WSS (receber dados)
-const wss = new WebSocket.Server({ 
-  server, 
-  path: '/ws'
-});
-
-// WebSocket para o painel (tempo real)
-const panelWss = new WebSocket.Server({ 
-  server, 
-  path: '/panel-ws'
-});
-
-// Conexões WSS (dados dos bots)
-wss.on('connection', (ws, req) => {
-  const botId = `bot_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  activeBots.add(botId);
-  
-  console.log(`[WSS] Nova conexão: ${botId}`);
-  console.log(`[WSS] Total de bots online: ${activeBots.size}`);
-  
-  // Heartbeat para manter viva
-  const heartbeat = setInterval(() => {
-    if (ws.isAlive === false) {
-      ws.terminate();
-      clearInterval(heartbeat);
-      activeBots.delete(botId);
-      updatePanelStats();
-      return;
-    }
-    ws.isAlive = false;
-    ws.ping();
-  }, 30000);
-  
-  ws.isAlive = true;
-  ws.on('pong', () => {
+// Heartbeat para manter conexões vivas
+function heartbeat(ws) {
     ws.isAlive = true;
-  });
-  
-  // Receber dados
-  ws.on('message', (rawData) => {
-    const data = rawData.toString();
-    const dataType = detectDataType(data);
-    
-    const brainrot = {
-      id: `br_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      timestamp: new Date().toISOString(),
-      botId: botId,
-      rawData: data,
-      type: dataType
-    };
-    
-    brainrots.push(brainrot);
-    
-    console.log(`[DATA] Tipo: ${dataType} | Bot: ${botId}`);
-    console.log(`[DATA] Conteúdo: ${data.substring(0, 100)}...`);
-    
-    // Notificar painel
-    updatePanelStats();
-  });
-  
-  ws.on('error', (err) => {
-    console.error(`[WSS ERROR] ${botId}:`, err.message);
-  });
-  
-  ws.on('close', () => {
-    console.log(`[WSS] Desconectado: ${botId}`);
-    activeBots.delete(botId);
-    clearInterval(heartbeat);
-    updatePanelStats();
-    console.log(`[WSS] Total de bots online: ${activeBots.size}`);
-  });
-  
-  updatePanelStats();
-});
-
-// Conexões do painel (atualizações em tempo real)
-panelWss.on('connection', (ws) => {
-  console.log('[PANEL] Nova conexão do painel');
-  
-  // Enviar dados iniciais
-  ws.send(JSON.stringify({
-    type: 'init',
-    data: {
-      brainrots: brainrots,
-      uptime: Math.floor((Date.now() - startTime) / 1000),
-      totalBrainrots: brainrots.length,
-      botsOnline: activeBots.size,
-      wssStatus: 'online'
-    }
-  }));
-  
-  ws.on('error', (err) => {
-    console.error('[PANEL ERROR]:', err.message);
-  });
-  
-  ws.on('close', () => {
-    console.log('[PANEL] Desconexão do painel');
-  });
-});
-
-// Atualizar estatísticas para o painel
-function updatePanelStats() {
-  const uptime = Math.floor((Date.now() - startTime) / 1000);
-  
-  const stats = {
-    type: 'stats',
-    data: {
-      uptime: uptime,
-      totalBrainrots: brainrots.length,
-      botsOnline: activeBots.size,
-      wssStatus: 'online',
-      brainrots: brainrots.slice(-50) // Últimos 50
-    }
-  };
-  
-  panelWss.clients.forEach((client) => {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(JSON.stringify(stats));
-    }
-  });
 }
 
-// ROTAS REST API
+function setupHeartbeat(ws) {
+    ws.isAlive = true;
+    ws.on('pong', () => heartbeat(ws));
+}
 
-// Health check (para Railway manter vivo)
-app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
-    uptime: Math.floor((Date.now() - startTime) / 1000),
-    botsOnline: activeBots.size,
-    totalBrainrots: brainrots.length
-  });
-});
+// WebSocket principal (/ws) - Recebe dados
+wss.on('connection', (ws, req) => {
+    const botId = `bot_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
+    connectedBots.add(botId);
+    console.log(`[WSS] Bot conectado: ${botId} | Total: ${connectedBots.size}`);
+    
+    setupHeartbeat(ws);
 
-// Estatísticas
-app.get('/api/stats', (req, res) => {
-  const uptime = Math.floor((Date.now() - startTime) / 1000);
-  
-  res.json({
-    status: 'success',
-    data: {
-      uptime: uptime,
-      totalBrainrots: brainrots.length,
-      botsOnline: activeBots.size,
-      wssStatus: 'online',
-      upSince: new Date(startTime).toISOString()
-    }
-  });
-});
-
-// Listar brainrots
-app.get('/api/brainrots', (req, res) => {
-  res.json({
-    status: 'success',
-    total: brainrots.length,
-    data: brainrots
-  });
-});
-
-// Limpar brainrots (requer autenticação)
-app.delete('/api/brainrots', (req, res) => {
-  const token = req.headers['x-admin-token'];
-  
-  if (token !== ADMIN_TOKEN) {
-    return res.status(401).json({
-      status: 'error',
-      message: 'Token inválido'
+    ws.on('message', (data) => {
+        try {
+            const rawData = data.toString();
+            let type = 'TEXT';
+            let parsedData = rawData;
+            
+            // Detecta o tipo de dado
+            try {
+                JSON.parse(rawData);
+                type = 'JSON';
+                parsedData = JSON.parse(rawData);
+            } catch (e) {
+                if (/^\d+(\.\d+)?$/.test(rawData.trim())) {
+                    type = 'NUMBER';
+                } else if (/<[^>]+>/.test(rawData)) {
+                    type = 'XML/HTML';
+                } else {
+                    type = 'TEXT';
+                }
+            }
+            
+            const brainrot = {
+                id: Date.now() + '_' + Math.random().toString(36).substr(2, 8),
+                timestamp: new Date().toISOString(),
+                botId: botId,
+                rawData: rawData,
+                type: type,
+                parsedData: type === 'JSON' ? parsedData : rawData
+            };
+            
+            brainrots.unshift(brainrot);
+            // Mantém apenas os últimos 1000 registros
+            if (brainrots.length > 1000) brainrots.pop();
+            
+            console.log(`[WSS] Mensagem recebida de ${botId} | Tipo: ${type} | Tamanho: ${rawData.length}`);
+            
+            // Notifica todos os painéis conectados
+            panelWss.clients.forEach(client => {
+                if (client.readyState === WebSocket.OPEN) {
+                    client.send(JSON.stringify({
+                        type: 'new_brainrot',
+                        data: brainrot
+                    }));
+                }
+            });
+            
+            // Envia confirmação para o bot
+            ws.send(JSON.stringify({
+                status: 'received',
+                id: brainrot.id,
+                type: type,
+                timestamp: brainrot.timestamp
+            }));
+            
+        } catch (error) {
+            console.error('[WSS] Erro ao processar mensagem:', error);
+            ws.send(JSON.stringify({
+                status: 'error',
+                message: error.message
+            }));
+        }
     });
-  }
-  
-  const cleared = brainrots.length;
-  brainrots = [];
-  
-  console.log(`[API] Brainrots limpos. Total: ${cleared}`);
-  updatePanelStats();
-  
-  res.json({
-    status: 'success',
-    message: 'Todos os brainrots foram limpos',
-    cleared: cleared
-  });
+    
+    ws.on('close', () => {
+        connectedBots.delete(botId);
+        console.log(`[WSS] Bot desconectado: ${botId} | Total: ${connectedBots.size}`);
+        
+        // Notifica painéis sobre atualização de bots online
+        panelWss.clients.forEach(client => {
+            if (client.readyState === WebSocket.OPEN) {
+                client.send(JSON.stringify({
+                    type: 'stats_update',
+                    data: {
+                        totalBrainrots: brainrots.length,
+                        botsOnline: connectedBots.size,
+                        uptime: Date.now() - startTime
+                    }
+                }));
+            }
+        });
+    });
+    
+    ws.on('error', (error) => {
+        console.error(`[WSS] Erro no bot ${botId}:`, error);
+    });
+    
+    // Envia boas-vindas
+    ws.send(JSON.stringify({
+        status: 'connected',
+        botId: botId,
+        message: 'Conectado ao servidor WebSocket!',
+        timestamp: new Date().toISOString()
+    }));
 });
 
-// Página inicial (redirecionar para index.html)
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+// WebSocket do painel (/panel-ws)
+panelWss.on('connection', (ws) => {
+    console.log('[Panel] Painel conectado');
+    
+    // Envia dados iniciais
+    ws.send(JSON.stringify({
+        type: 'initial_data',
+        data: {
+            brainrots: brainrots.slice(0, 50),
+            stats: {
+                totalBrainrots: brainrots.length,
+                botsOnline: connectedBots.size,
+                uptime: Date.now() - startTime,
+                startTime: startTime
+            }
+        }
+    }));
+    
+    ws.on('close', () => {
+        console.log('[Panel] Painel desconectado');
+    });
 });
 
-// Keep-alive para Railway (evitar que durma)
+// Rotas API REST
+app.get('/health', (req, res) => {
+    res.json({
+        status: 'healthy',
+        uptime: Date.now() - startTime,
+        timestamp: new Date().toISOString()
+    });
+});
+
+app.get('/api/stats', (req, res) => {
+    res.json({
+        uptime: Date.now() - startTime,
+        totalBrainrots: brainrots.length,
+        botsOnline: connectedBots.size,
+        status: 'online',
+        startTime: startTime
+    });
+});
+
+app.get('/api/brainrots', (req, res) => {
+    const limit = parseInt(req.query.limit) || 100;
+    res.json(brainrots.slice(0, limit));
+});
+
+app.delete('/api/brainrots', (req, res) => {
+    const token = req.headers['x-admin-token'];
+    if (token !== ADMIN_TOKEN) {
+        return res.status(401).json({ error: 'Token inválido' });
+    }
+    
+    const count = brainrots.length;
+    brainrots = [];
+    console.log('[API] Todos os brainrots foram limpos');
+    
+    // Notifica painéis
+    panelWss.clients.forEach(client => {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify({
+                type: 'brainrots_cleared',
+                count: count
+            }));
+        }
+    });
+    
+    res.json({ message: `${count} brainrots removidos` });
+});
+
+// Keep-alive para Railway
 setInterval(() => {
-  // Apenas log interno
-}, 60000);
+    http.get(`http://localhost:${PORT}/health`, (res) => {
+        console.log('[Keep-Alive] Health check executado');
+    }).on('error', (err) => {
+        console.error('[Keep-Alive] Erro:', err.message);
+    });
+}, 4 * 60 * 1000); // 4 minutos
 
-// Iniciar servidor
-server.listen(port, () => {
-  console.log(`\n================================================`);
-  console.log(`✅ Servidor WebSocket iniciado!`);
-  console.log(`🌐 HTTP: http://localhost:${port}`);
-  console.log(`🔌 WSS: ws://localhost:${port}/ws`);
-  console.log(`🎮 Painel: http://localhost:${port}`);
-  console.log(`================================================\n`);
-});
+// Heartbeat para WebSockets
+setInterval(() => {
+    wss.clients.forEach((ws) => {
+        if (ws.isAlive === false) {
+            console.log('[WSS] Desconectando cliente inativo');
+            return ws.terminate();
+        }
+        ws.isAlive = false;
+        ws.ping();
+    });
+    
+    panelWss.clients.forEach((ws) => {
+        if (ws.isAlive === false) {
+            return ws.terminate();
+        }
+        ws.isAlive = false;
+        ws.ping();
+    });
+}, 30000); // 30 segundos
 
-// Tratar erros de servidor
-server.on('error', (err) => {
-  console.error('[SERVER ERROR]:', err);
-});
-
-process.on('uncaughtException', (err) => {
-  console.error('[UNCAUGHT ERROR]:', err);
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+    console.log(`[Server] Rodando na porta ${PORT}`);
+    console.log(`[WebSocket] Endpoint: ws://localhost:${PORT}/ws`);
+    console.log(`[Panel WebSocket] Endpoint: ws://localhost:${PORT}/panel-ws`);
+    console.log(`[HTTP] Endpoint: http://localhost:${PORT}`);
 });
