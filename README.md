@@ -1,27 +1,34 @@
-# 🚀 WSS Brainrot Collector para Railway
+# Brainrot Server - WebSocket Universal
 
-## Deploy no Railway (SUPER FÁCIL)
+Um servidor WebSocket robusto que aceita QUALQUER formato de dados (JSON, texto, números, XML, HTML) e fornece um painel de controle em tempo real.
 
-### Passo 1: Criar conta no Railway
-1. Acesse [https://railway.com](https://railway.com)
-2. Faça login com GitHub (grátis, ganha $5 de crédito)
+## 🚀 Deploy no Railway
 
-### Passo 2: Fazer deploy
-1. Clique em **"New Project"**
-2. Escolha **"Deploy from GitHub repo"**
-3. Selecione seu repositório com esses arquivos
-4. Railway detecta automaticamente que é Node.js
-5. **Pronto!** O deploy é automático
+1. **Faça fork deste repositório ou crie um novo no GitHub**
 
-### Passo 3: Acessar sua WSS
-- URL do site: `https://SEU-NOME.railway.app`
-- WebSocket: `wss://SEU-NOME.railway.app/on`
-- Token admin: `admin123`
+2. **No Railway.app:**
+   - Clique em "New Project"
+   - Selecione "Deploy from GitHub repo"
+   - Escolha seu repositório
+   - Railway irá automaticamente detectar o Node.js e fazer o deploy
 
-## 📡 Testar WebSocket
+3. **Configuração automática:**
+   - A Railway irá definir a variável `PORT` automaticamente
+   - O servidor estará disponível em `https://seu-projeto.up.railway.app`
+   - WebSocket em `wss://seu-projeto.up.railway.app/ws`
 
-### JavaScript (Navegador)
-```javascript
-const ws = new WebSocket('wss://SEU-NOME.railway.app/on');
-ws.onopen = () => ws.send(JSON.stringify({teste: "funcionou!"}));
-ws.onmessage = (e) => console.log(e.data);
+## 🔧 Teste Localmente
+
+```bash
+# Clone o repositório
+git clone seu-repositorio
+cd seu-repositorio
+
+# Instale as dependências
+npm install
+
+# Inicie o servidor
+npm start
+
+# Para desenvolvimento com auto-reload
+npm run dev
