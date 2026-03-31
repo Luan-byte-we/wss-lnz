@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WSS Control Panel</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0a0a0f;
+            font-family: monospace;
+            color: #e0e0e0;
+            padding: 20px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .header h1 { color: #00e5a0; margin-bottom: 5px; }
+        .header p { color: #888; font-size: 12px; }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .card {
+            background: #1a1a2e;
+            border: 1px solid #2a2a3e;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+        .card h3 { font-size: 12px; color: #888; margin-bottom: 10px; }
+        .card .value { font-size: 28px; font-weight: bold; color: #00e5a0; }
+        .panel {
+            background: #1a1a2e;
+            border: 1px solid #2a2a3e;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .panel h2 { font-size: 16px; margin-bottom: 15px; color: #00e5a0; }
+        .login-area {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            justify-content: flex-end;
+            margin-bottom: 15px;
+        }
+        .login-area input {
+            background: #0a0a0f;
+            border: 1px solid #2a2a3e;
+            padding: 8px 12px;
+            color: white;
+            border-radius: 5px;
+        }
+        button {
+            background: #00e5a0;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button.danger { background: #e74c3c; color: white; }
+        button.secondary { background: #2a2a3e; color: #00e5a0; }
+        .brainrot-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .brainrot-item {
+            background: #0a0a0f;
+            border: 1px solid #2a2a3e;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 8px;
+            font-size: 12px;
+        }
+        .brainrot-time { color: #888; font-size: 10px; margin-bottom: 5px; }
+        .brainrot-data { color: #00e5a0; word-break: break-all; }
+        .status {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status.online { background: #00e5a0; box-shadow: 0 0 5px #00e5a0; }
+        .status.offline { background: #e74c3c; }
+        .flex { display: flex; justify-content: space-between; align-items: center; }
+        .mt-20 { margin-top: 20px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>⚡ WSS CONTROL PANEL</h1>
+        <p>wss://ws-LNZ.online/on</p>
+    </div>
+
+    <div class="login-area">
+        <input type="password" id="token" placeholder="Admin Token" value="admin123">
+        <button onclick="auth()">Autenticar</button>
+        <span id="authStatus" style="font-size:12px"></span>
+    </div>
+
+    <div class="stats" id="stats">
+        <div class="card"><h3>SERVER UPTIME</h3><div class="value" id="uptime">--</div></div>
+        <div class="card"><h3>TOTAL BRAINROTS</h3><div class="value" id="total">0</div></div>
+        <div class="card"><h3>BOTS ONLINE</h3><div class="value" id="bots">0</div></div>
+        <div class="card"><h3>WSS STATUS</h3><div class="value" id="wssStatus">🟢 ONLINE</div></div>
+    </div>
+
+    <div class="panel">
+        <div class="flex">
+            <h2>📦 Brainrots Recebidos</h2>
+            <button class="danger" onclick="clearBrainrots()">🗑 Limpar Todos</button>
+        </div>
+        <div class="brainrot-list" id="brainrots">
+            <div style="color:#888; text-align:center; padding:20px">Aguardando dados...</div>
+        </div>
+    </div>
+
+    <div class="panel">
+        <h2>📝 Como Conectar Seu Bot</h2>
+        <pre style="background:#0a0a0f; padding:15px; border-radius:5px; overflow-x:auto">
+<span style="color:#00e5a0"># Python</span>
+import websocket, json
+ws = websocket.WebSocket()
+ws.connect("wss://ws-LNZ.online/on")
+ws.send(json.dumps({"bot": "python", "mensagem": "Olá WSS!"}))
+print(ws.recv())
+ws.close()
+
+<span style="color:#00e5a0"># Node.js</span>
+const WebSocket = require('ws');
+const ws = new WebSocket('wss://ws-LNZ.online/on');
+ws.on('open', () => ws.send(JSON.stringify({bot: 'node', msg: 'teste'})));
+ws.on('message', d => console.log(d.toString()));
+        </pre>
+    </div>
+</div>
+
+<script>
+let authToken = '';
+
+function auth() {
+    authToken = document.getElementById('token').value;
+    document.getElementById('authStatus').innerHTML = '✅ Autenticado';
+    loadData();
+}
+
+async function loadData() {
+    try {
+        const res = await fetch('/api/stats');
+        const data = await res.json();
+        document.getElementById('uptime').innerHTML = data.uptime || '0d 0h';
+        document.getElementById('total').innerHTML = data.totalBrainrots || 0;
+        document.getElementById('bots').innerHTML = data.botsOnline || 0;
+        
+        const brainrotsDiv = document.getElementById('brainrots');
+        if (data.brainrots && data.brainrots.length > 0) {
+            brainrotsDiv.innerHTML = data.brainrots.map(b => `
+                <div class="brainrot-item">
+                    <div class="brainrot-time">${new Date(b.receivedAt).toLocaleString()}</div>
+                    <div class="brainrot-data">${JSON.stringify(b.data, null, 2)}</div>
+                </div>
+            `).join('');
+        } else {
+            brainrotsDiv.innerHTML = '<div style="color:#888; text-align:center; padding:20px">Nenhum brainrot recebido ainda</div>';
+        }
+    } catch(e) {
+        console.error('Erro:', e);
+    }
+}
+
+async function clearBrainrots() {
+    if (!confirm('⚠️ TEM CERTEZA? Isso vai deletar TODOS os brainrots permanentemente!')) return;
+    try {
+        const res = await fetch('/api/brainrots', {
+            method: 'DELETE',
+            headers: { 'x-admin-token': authToken }
+        });
+        if (res.ok) {
+            alert('Brainrots limpos!');
+            loadData();
+        } else {
+            alert('Erro: Token inválido ou não autenticado');
+        }
+    } catch(e) {
+        alert('Erro: ' + e.message);
+    }
+}
+
+// Conectar WebSocket para atualizações em tempo real
+function connectWS() {
+    const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const ws = new WebSocket(`${proto}//${location.host}/ws`);
+    
+    ws.onmessage = (e) => {
+        const msg = JSON.parse(e.data);
+        if (msg.event === 'stats') {
+            document.getElementById('uptime').innerHTML = msg.stats.uptime || '0d 0h';
+            document.getElementById('total').innerHTML = msg.stats.totalBrainrots || 0;
+            document.getElementById('bots').innerHTML = msg.stats.botsOnline || 0;
+        }
+        if (msg.event === 'brainrot') {
+            loadData(); // recarrega
+        }
+    };
+    
+    ws.onclose = () => setTimeout(connectWS, 3000);
+}
+
+// Carregar dados a cada 5 segundos (fallback)
+setInterval(() => { if(!authToken) return; loadData(); }, 5000);
+connectWS();
+loadData();
+</script>
+</body>
+</html>
