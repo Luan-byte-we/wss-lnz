@@ -1,57 +1,27 @@
-# 🚀 WSS Brainrot Collector
+# 🚀 WSS Brainrot Collector para Railway
 
-Servidor WebSocket para coleta de brainrots com painel de controle em tempo real.
+## Deploy no Railway (SUPER FÁCIL)
 
-## 📋 Funcionalidades
+### Passo 1: Criar conta no Railway
+1. Acesse [https://railway.com](https://railway.com)
+2. Faça login com GitHub (grátis, ganha $5 de crédito)
 
-- ✅ WebSocket real na rota `/on` (`wss://ws-lnz.onrender.com/on`)
-- ✅ Painel de controle com autenticação
-- ✅ Recebimento e armazenamento de dados JSON
-- ✅ Estatísticas em tempo real (uptime, brainrots, bots online)
-- ✅ API REST completa
-- ✅ Keep-alive automático (não dorme no Render)
-- ✅ Exemplos de código para múltiplas linguagens
+### Passo 2: Fazer deploy
+1. Clique em **"New Project"**
+2. Escolha **"Deploy from GitHub repo"**
+3. Selecione seu repositório com esses arquivos
+4. Railway detecta automaticamente que é Node.js
+5. **Pronto!** O deploy é automático
 
-## 🚀 Deploy no Render
+### Passo 3: Acessar sua WSS
+- URL do site: `https://SEU-NOME.railway.app`
+- WebSocket: `wss://SEU-NOME.railway.app/on`
+- Token admin: `admin123`
 
-### 1. Faça o deploy do código
+## 📡 Testar WebSocket
 
-1. Crie um repositório no GitHub e envie todos os arquivos
-2. Acesse [Render.com](https://render.com)
-3. Clique em "New +" > "Web Service"
-4. Conecte seu repositório GitHub
-5. Configure:
-   - **Name:** `ws-lnz` (ou o nome que preferir)
-   - **Environment:** `Node`
-   - **Build Command:** `npm install`
-   - **Start Command:** `npm start`
-6. Clique em "Create Web Service"
-
-### 2. Configure o domínio
-
-O Render vai gerar automaticamente uma URL como:
-- `https://ws-lnz.onrender.com` (site)
-- `wss://ws-lnz.onrender.com/on` (WebSocket)
-
-### 3. Acesse o painel
-
-- URL do site: `https://ws-lnz.onrender.com`
-- Token de acesso: `admin123`
-
-## 🔧 Teste Localmente
-
-```bash
-# Clone o repositório
-git clone seu-repositorio
-
-# Entre na pasta
-cd wss-brainrot-collector
-
-# Instale as dependências
-npm install
-
-# Inicie o servidor
-npm start
-
-# Acesse no navegador
-http://localhost:3000
+### JavaScript (Navegador)
+```javascript
+const ws = new WebSocket('wss://SEU-NOME.railway.app/on');
+ws.onopen = () => ws.send(JSON.stringify({teste: "funcionou!"}));
+ws.onmessage = (e) => console.log(e.data);
