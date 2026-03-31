@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧠 Brainrot WSS - Painel de Controle</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0f1e 0%, #1a0a2e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* ===== LOGIN ===== */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #0f0f1e 0%, #1a0a2e 100%);
+            z-index: 1000;
+        }
+
+        .login-box {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .login-box h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 28px;
+            background: linear-gradient(135deg, #00d4ff, #0099ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .login-box p {
+            text-align: center;
+            color: #aaa;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .login-group {
+            margin-bottom: 20px;
+        }
+
+        .login-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .login-group input {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: #e0e0e0;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .login-group input:focus {
+            outline: none;
+            border-color: #00d4ff;
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #00d4ff, #0099ff);
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 212, 255, 0.4);
+        }
+
+        .login-hidden {
+            display: none !important;
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header h1 {
+            font-size: 28px;
+            background: linear-gradient(135deg, #00d4ff, #0099ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            background: rgba(0, 212, 255, 0.1);
+            border-radius: 10px;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            background: #00d4ff;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .logout-btn {
+            padding: 8px 15px;
+            background: rgba(255, 59, 48, 0.2);
+            border: 1px solid rgba(255, 59, 48, 0.5);
+            border-radius: 8px;
+            color: #ff3b30;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 59, 48, 0.3);
+            box-shadow: 0 4px 12px rgba(255, 59, 48, 0.2);
+        }
+
+        /* ===== STATS CARDS ===== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            transition: all 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(0, 212, 255, 0.3);
+            box-shadow: 0 8px 25px rgba(0, 212, 255, 0.1);
+        }
+
+        .stat-label {
+            color: #aaa;
+            font-size: 14px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #00d4ff;
+            margin-bottom: 5px;
+        }
+
+        .stat-detail {
+            font-size: 12px;
+            color: #888;
+        }
+
+        /* ===== CONTROLES ===== */
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: #e0e0e0;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(0, 212, 255, 0.3);
+        }
+
+        .btn-danger {
+            background: rgba(255, 59, 48, 0.1);
+            border-color: rgba(255, 59, 48, 0.3);
+            color: #ff3b30;
+        }
+
+        .btn-danger:hover {
+            background: rgba(255, 59, 48, 0.2);
+            box-shadow: 0 4px 12px rgba(255, 59, 48, 0.2);
+        }
+
+        /* ===== BRAINROTS LIST ===== */
+        .brainrots-container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .brainrots-container h2 {
+            margin-bottom: 20px;
+            color: #00d4ff;
+            font-size: 20px;
+        }
+
+        .brainrot-item {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 12px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .brainrot-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .brainrot-type {
+            display: inline-block;
+            padding: 4px 10px;
+            background: rgba(0, 212, 255, 0.2);
+            border-radius: 5px;
+            font-size: 11px;
+            font-weight: bold;
+            color: #00d4ff;
+        }
+
+        .brainrot-type.json { background: rgba(76, 175, 80, 0.2); color: #4caf50; }
+        .brainrot-type.text { background: rgba(33, 150, 243, 0.2); color: #2196f3; }
+        .brainrot-type.number { background: rgba(255, 152, 0, 0.2); color: #ff9800; }
+        .brainrot-type.xml { background: rgba(156, 39, 176, 0.2); color: #9c27b0; }
+
+        .brainrot-time {
+            font-size: 12px;
+            color: #888;
+        }
+
+        .brainrot-bot {
+            font-size: 12px;
+            color: #aaa;
+            margin-bottom: 8px;
+        }
+
+        .brainrot-data {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: #ccc;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 8px;
+            word-break: break-all;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+
+        .brainrot-empty {
+            text-align: center;
+            color: #888;
+            padding: 40px 20px;
+            font-size: 14px;
+        }
+
+        /* ===== EXEMPLOS ===== */
+        .examples-container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .examples-container h2 {
+            margin-bottom: 20px;
+            color: #00d4ff;
+        }
+
+        .example-tab {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #aaa;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            background: rgba(0, 212, 255, 0.2);
+            border-color: rgba(0, 212, 255, 0.5);
+            color: #00d4ff;
+        }
+
+        .example-code {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: #00ff00;
+            overflow-x: auto;
+            display: none;
+        }
+
+        .example-code.active {
+            display: block;
+        }
+
+        .copy-btn {
+            padding: 8px 12px;
+            background: rgba(0, 212, 255, 0.2);
+            border: 1px solid rgba(0, 212, 255, 0.4);
+            border-radius: 6px;
+            color: #00d4ff;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: rgba(0, 212, 255, 0.3);
+        }
+
+        .wss-endpoint {
+            background: rgba(76, 175, 80, 0.1);
+            border: 2px solid rgba(76, 175, 80, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            color: #4caf50;
+            font-family: monospace;
+            word-break: break-all;
+        }
+
+        /* ===== RESPONSIVO ===== */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .header-right {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: rgba(15, 15, 30, 0.95);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .modal-content h3 {
+            margin-bottom: 20px;
+            color: #ff9800;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .modal-confirm {
+            background: #ff3b30;
+            color: white;
+        }
+
+        .modal-cancel {
+            background: rgba(255, 255, 255, 0.1);
+            color: #e0e0e0;
+        }
+    </style>
+</head>
+<body>
+    <!-- LOGIN -->
+    <div id="loginContainer" class="login-container">
+        <div class="login-box">
+            <h1>🧠 Brainrot WSS</h1>
+            <p>Painel de Controle</p>
+            <div class="login-group">
+                <label for="tokenInput">Token de Acesso</label>
+                <input type="password" id="tokenInput" placeholder="admin123" />
+            </div>
+            <button class="login-btn" onclick="login()">Entrar</button>
+        </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div class="container login-hidden">
+        <!-- HEADER -->
+        <div class="header">
+            <h1>🧠 Brainrot WSS - Painel de Controle</h1>
+            <div class="header-right">
+                <div class="status-indicator">
+                    <div class="status-dot"></div>
+                    <span id="wssStatus">Conectando...</span>
+                </div>
+                <button class="logout-btn" onclick="logout()">Sair</button>
+            </div>
+        </div>
+
+        <!-- STATS -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">📈 Uptime</div>
+                <div class="stat-value" id="uptime">0s</div>
+                <div class="stat-detail">Server online</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">🧠 Total de Brainrots</div>
+                <div class="stat-value" id="totalBrainrots">0</div>
+                <div class="stat-detail">Dados recebidos</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">🤖 Bots Online</div>
+                <div class="stat-value" id="botsOnline">0</div>
+                <div class="stat-detail">Conexões ativas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">🔌 WSS Endpoint</div>
+                <div class="stat-value" id="wssEndpoint" style="font-size: 14px; overflow-x: auto;">-</div>
+                <div class="stat-detail">Status: <span id="wssStatusDetail">offline</span></div>
+            </div>
+        </div>
+
+        <!-- CONTROLES -->
+        <div class="controls">
+            <button class="btn" onclick="refreshData()">🔄 Atualizar</button>
+            <button class="btn btn-danger" onclick="confirmClear()">🗑️ Limpar Todos</button>
+        </div>
+
+        <!-- BRAINROTS -->
+        <div class="brainrots-container">
+            <h2>📡 Brainrots Recebidos (Últimos 50)</h2>
+            <div id="brainrotsList" class="brainrot-empty">Aguardando dados...</div>
+        </div>
+
+        <!-- EXEMPLOS -->
+        <div class="examples-container">
+            <h2>💻 Exemplos de Uso</h2>
+            
+            <div class="wss-endpoint" id="wssEndpointDisplay">
+                Endpoint WSS: <strong>ws://localhost:3000/ws</strong> (local)
+            </div>
+
+            <div class="example-tab">
+                <button class="tab-btn active" onclick="switchExample('python')">🐍 Python</button>
+                <button class="tab-btn" onclick="switchExample('nodejs')">🟢 Node.js</button>
+                <button class="tab-btn" onclick="switchExample('javascript')">🟡 JavaScript</button>
+                <button class="tab-btn" onclick="switchExample('curl')">📌 cURL/wscat</button>
+            </div>
+
+            <div id="python" class="example-code active">
+<pre>import asyncio
+import websockets
+import json
+
+async def send_data():
+    uri = "ws://localhost:3000/ws"  # ou wss://seu-dominio.com/ws
+    
+    async with websockets.connect(uri) as websocket:
+        # Enviar JSON
+        await websocket.send(json.dumps({"tipo": "brainrot", "conteudo": "teste"}))
+        
+        # Enviar texto puro
+        await websocket.send("Texto simples")
+        
+        # Enviar número
+        await websocket.send("12345")
+        
+        # Enviar HTML
+        await websocket.send("&lt;h1&gt;Teste&lt;/h1&gt;")
+
+# Executar
+asyncio.run(send_data())
+</pre>
+                <button class="copy-btn" onclick="copyCode('python')">📋 Copiar</button>
+            </div>
+
+            <div id="nodejs" class="example-code">
+<pre>const WebSocket = require('ws');
+
+const ws = new WebSocket('ws://localhost:3000/ws');
+// ou wss://seu-dominio.com/ws
+
+ws.on('open', () => {
+    // Enviar JSON
+    ws.send(JSON.stringify({tipo: "brainrot", conteudo: "teste"}));
+    
+    // Enviar texto
+    ws.send("Texto simples");
+    
+    // Enviar número
+    ws.send("12345");
+    
+    // Enviar HTML
+    ws.send("&lt;h1&gt;Teste&lt;/h1&gt;");
+});
+
+ws.on('message', (msg) => {
+    console.log('Recebido:', msg);
+});
+
+ws.on('close', () => {
+    console.log('Desconectado');
+});
+</pre>
+                <button class="copy-btn" onclick="copyCode('nodejs')">📋 Copiar</button>
+            </div>
+
+            <div id="javascript" class="example-code">
+<pre>const ws = new WebSocket('ws://localhost:3000/ws');
+// ou wss://seu-dominio.com/ws
+
+ws.onopen = () => {
+    // Enviar JSON
+    ws.send(JSON.stringify({tipo: "brainrot", conteudo: "teste"}));
+    
+    // Enviar texto
+    ws.send("Texto simples");
+    
+    // Enviar número
+    ws.send("12345");
+    
+    // Enviar HTML
+    ws.send("&lt;h1&gt;Teste&lt;/h1&gt;");
+};
+
+ws.onmessage = (event) => {
+    console.log('Recebido:', event.data);
+};
+
+ws.onclose = () => {
+    console.log('Desconectado');
+};
+</pre>
+                <button class="copy-btn" onclick="copyCode('javascript')">📋 Copiar</button>
+            </div>
+
+            <div id="curl" class="example-code">
+<pre># Usando wscat (instale com: npm install -g wscat)
+
+# Conectar
+wscat -c ws://localhost:3000/ws
+
+# Ou usando wsd
+wsd ws://localhost:3000/ws
+
+# Exemplos de envio (após conectar):
+{"tipo": "brainrot", "conteudo": "teste"}
+Texto simples
+12345
+&lt;h1&gt;Teste&lt;/h1&gt;
+&lt;xml&gt;&lt;valor&gt;teste&lt;/valor&gt;&lt;/xml&gt;
+</pre>
+                <button class="copy-btn" onclick="copyCode('curl')">📋 Copiar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL -->
+    <div id="clearModal" class="modal">
+        <div class="modal-content">
+            <h3>⚠️ Limpar Todos os Brainrots?</h3>
+            <p>Esta ação não pode ser desfeita.</p>
+            <div class="modal-buttons">
+                <button class="modal-btn modal-confirm" onclick="clearBrainrots()">Confirmar</button>
+                <button class="modal-btn modal-cancel" onclick="cancelClear()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let token = null;
+        let ws = null;
+        let loggedIn = false;
+
+        // ===== LOGIN =====
+        function login() {
+            const tokenInput = document.getElementById('tokenInput').value;
+            
+            if (!tokenInput.trim()) {
+                alert('Digite o token!');
+                return;
+            }
+            
+            token = tokenInput;
+            loggedIn = true;
+            
+            document.getElementById('loginContainer').classList.add('login-hidden');
+            document.querySelectorAll('.container')[0].classList.remove('login-hidden');
+            
+            connectWebSocket();
+            updateEndpoint();
+            document.getElementById('tokenInput').value = '';
+        }
+
+        function logout() {
+            if (ws) ws.close();
+            loggedIn = false;
+            token = null;
+            document.getElementById('loginContainer').classList.remove('login-hidden');
+            document.querySelectorAll('.container')[0].classList.add('login-hidden');
+        }
+
+        // ===== WEBSOCKET =====
+        function connectWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const host = window.location.host;
+            const wsUrl = `${protocol}//${host}/panel-ws`;
+            
+            ws = new WebSocket(wsUrl);
+            
+            ws.onopen = () => {
+                console.log('✅ Conectado ao WebSocket do painel');
+                document.getElementById('wssStatus').textContent = 'Online';
+                document.getElementById('wssStatusDetail').textContent = 'online';
+            };
+            
+            ws.onmessage = (event) => {
+                const msg = JSON.parse(event.data);
+                
+                if (msg.type === 'init' || msg.type === 'stats') {
+                    updateStats(msg.data);
+                    updateBrainrotsList(msg.data.brainrots);
+                }
+            };
+            
+            ws.onerror = (err) => {
+                console.error('❌ Erro WebSocket:', err);
+                document.getElementById('wssStatus').textContent = 'Erro';
+                document.getElementById('wssStatusDetail').textContent = 'erro';
+            };
+            
+            ws.onclose = () => {
+                console.log('❌ Desconectado do WebSocket');
+                document.getElementById('wssStatus').textContent = 'Offline';
+                document.getElementById('wssStatusDetail').textContent = 'offline';
+                
+                // Reconectar a cada 3 segundos
+                if (loggedIn) {
+                    setTimeout(connectWebSocket, 3000);
+                }
+            };
+        }
+
+        // ===== ATUALIZAR STATS =====
+        function updateStats(data) {
+            document.getElementById('uptime').textContent = formatUptime(data.uptime);
+            document.getElementById('totalBrainrots').textContent = data.totalBrainrots;
+            document.getElementById('botsOnline').textContent = data.botsOnline;
+        }
+
+        function formatUptime(seconds) {
+            if (seconds < 60) return seconds + 's';
+            if (seconds < 3600) return Math.floor(seconds / 60) + 'm';
+            if (seconds < 86400) return Math.floor(seconds / 3600) + 'h';
+            return Math.floor(seconds / 86400) + 'd';
+        }
+
+        // ===== ATUALIZAR BRAINROTS =====
+        function updateBrainrotsList(brainrots) {
+            const list = document.getElementById('brainrotsList');
+            
+            if (!brainrots || brainrots.length === 0) {
+                list.innerHTML = '<div class="brainrot-empty">Aguardando dados...</div>';
+                return;
+            }
+            
+            list.innerHTML = brainrots.reverse().map(br => `
+                <div class="brainrot-item">
+                    <div class="brainrot-header">
+                        <span class="brainrot-type ${br.type.toLowerCase()}">${br.type}</span>
+                        <span class="brainrot-time">${formatTime(br.timestamp)}</span>
+                    </div>
+                    <div class="brainrot-bot">🤖 Bot: ${br.botId}</div>
+                    <div class="brainrot-data">${escapeHtml(br.rawData)}</div>
+                </div>
+            `).join('');
+        }
+
+        function formatTime(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleTimeString('pt-BR');
+        }
+
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+
+        // ===== ATUALIZAR ENDPOINT =====
+        function updateEndpoint() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const host = window.location.host;
+            const endpoint = `${protocol}//${host}/ws`;
+            
+            document.getElementById('wssEndpoint').textContent = endpoint;
+            document.getElementById('wssEndpointDisplay').innerHTML = 
+                `Endpoint WSS: <strong>${endpoint}</strong>`;
+        }
+
+        // ===== CONTROLES =====
+        function refreshData() {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                // WebSocket já atualiza automaticamente
+                alert('✅ Dados atualizados!');
+            }
+        }
+
+        function confirmClear() {
+            document.getElementById('clearModal').classList.add('show');
+        }
+
+        function cancelClear() {
+            document.getElementById('clearModal').classList.remove('show');
+        }
+
+        async function clearBrainrots() {
+            try {
+                const response = await fetch('/api/brainrots', {
+                    method: 'DELETE',
+                    headers: {
+                        'x-admin-token': token
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    alert('✅ Brainrots limpos com sucesso!');
+                    document.getElementById('totalBrainrots').textContent = '0';
+                    document.getElementById('brainrotsList').innerHTML = 
+                        '<div class="brainrot-empty">Aguardando dados...</div>';
+                } else {
+                    alert('❌ Erro: ' + data.message);
+                }
+            } catch (err) {
+                alert('❌ Erro ao limpar: ' + err.message);
+            }
+            
+            cancelClear();
+        }
+
+        // ===== EXEMPLOS =====
+        function switchExample(lang) {
+            // Atualizar botões
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Atualizar código
+            document.querySelectorAll('.example-code').forEach(code => {
+                code.classList.remove('active');
+            });
+            document.getElementById(lang).classList.add('active');
+        }
+
+        function copyCode(lang) {
+            const code = document.getElementById(lang).innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                alert('✅ Código copiado!');
+            });
+        }
+
+        // ===== INICIALIZAÇÃO =====
+        window.addEventListener('load', () => {
+            // Focus no input de token
+            document.getElementById('tokenInput').focus();
+        });
+
+        // Enter para logar
+        document.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !loggedIn) {
+                login();
+            }
+        });
+    </script>
+</body>
+</html>
