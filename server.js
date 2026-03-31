@@ -17,7 +17,9 @@ app.get('/api/status', (req, res) => {
     res.json({ online: true, time: new Date().toISOString() });
 });
 
+// ============================================
 // WSS para BOTS em /on
+// ============================================
 const wssBots = new WebSocketServer({ server, path: '/on' });
 
 const bots = new Map();
@@ -31,9 +33,13 @@ wssBots.on('connection', (ws, req) => {
     const botId = crypto.randomBytes(4).toString('hex').toUpperCase();
     
     bots.set(ws, { id: botId, ip, connectedAt: Date.now(), msgCount: 0 });
-    console.log(`✅ Bot ${botId} conectado`);
+    console.log(`✅ Bot ${botId} conectado de ${ip}`);
     
-    ws.send(JSON.stringify({ event: 'connected', botId, msg: 'Conectado! Envie dados JSON.' }));
+    ws.send(JSON.stringify({ 
+        event: 'connected', 
+        botId, 
+        msg: 'Conectado! Envie dados JSON.'
+    }));
     
     ws.on('message', (data) => {
         try {
@@ -51,8 +57,10 @@ wssBots.on('connection', (ws, req) => {
             totalBrainrots++;
             todayBrainrots++;
             
+            console.log(`📦 Dado recebido de ${botId}`);
             ws.send(JSON.stringify({ event: 'received', ack: true }));
             broadcastToPanels({ event: 'brainrot', stats: getStats() });
+            
         } catch(e) {
             ws.send(JSON.stringify({ error: 'JSON inválido' }));
         }
@@ -60,10 +68,13 @@ wssBots.on('connection', (ws, req) => {
     
     ws.on('close', () => {
         bots.delete(ws);
+        console.log(`❌ Bot ${botId} desconectado`);
     });
 });
 
+// ============================================
 // WSS para PAINEL em /ws
+// ============================================
 const wssPanel = new WebSocketServer({ server, path: '/ws' });
 const panels = new Set();
 
@@ -95,6 +106,7 @@ function getStats() {
 
 wssPanel.on('connection', (ws) => {
     panels.add(ws);
+    console.log(`📺 Painel conectado (${panels.size} ativos)`);
     ws.send(JSON.stringify({
         event: 'init',
         stats: getStats(),
@@ -124,51 +136,81 @@ app.delete('/api/brainrots', (req, res) => {
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
 // ============================================
-// 🧠 BOT INTERNO - Mantém a WSS ativa 24/7
+// 🧠 BOT INTERNO CORRIGIDO - Mantém a WSS ativa 24/7
 // ============================================
+let internalBot = null;
+let reconnectTimeout = null;
+
 function iniciarBotInterno() {
-    console.log('🤖 [BOT INTERNO] Iniciando bot de keep-alive...');
+    if (internalBot && internalBot.readyState === WebSocket.OPEN) {
+        console.log('🤖 [BOT INTERNO] Já está conectado.');
+        return;
+    }
+    if (reconnectTimeout) clearTimeout(reconnectTimeout);
+
+    console.log('🤖 [BOT INTERNO] Iniciando/Reconectando bot de keep-alive...');
     
-    setTimeout(() => {
-        const InternalBot = new WebSocket(`ws://localhost:${PORT}/on`);
+    // 🔧 FIX: Usa o domínio público do Render, não localhost
+    const publicUrl = `wss://ws-lnz-online.onrender.com/on`;
+    console.log(`🤖 [BOT INTERNO] Conectando a ${publicUrl}`);
+    
+    try {
+        internalBot = new WebSocket(publicUrl);
         
-        InternalBot.on('open', () => {
-            console.log('✅ [BOT INTERNO] Conectado! Enviando keep-alive...');
+        internalBot.on('open', () => {
+            console.log('✅ [BOT INTERNO] CONECTADO AO WSS! Enviando keep-alive...');
             
-            InternalBot.send(JSON.stringify({
+            internalBot.send(JSON.stringify({
                 type: "keepalive",
                 bot: "internal_bot",
-                message: "oi",
+                message: "oi, estou aqui para manter a WSS ativa!",
                 timestamp: new Date().toISOString()
             }));
+            console.log('💓 [BOT INTERNO] Primeira mensagem enviada.');
             
-            setInterval(() => {
-                if (InternalBot.readyState === WebSocket.OPEN) {
-                    InternalBot.send(JSON.stringify({
+            if (internalBot.keepAliveInterval) clearInterval(internalBot.keepAliveInterval);
+            internalBot.keepAliveInterval = setInterval(() => {
+                if (internalBot && internalBot.readyState === WebSocket.OPEN) {
+                    internalBot.send(JSON.stringify({
                         type: "keepalive",
                         bot: "internal_bot",
                         message: "oi",
                         timestamp: new Date().toISOString()
                     }));
-                    console.log(`💓 [BOT INTERNO] Keep-alive enviado: ${new Date().toLocaleTimeString()}`);
+                    console.log(`💓 [BOT INTERNO] Keep-alive enviado às ${new Date().toLocaleTimeString()}`);
+                } else if (internalBot && internalBot.readyState !== WebSocket.OPEN) {
+                    console.log('⚠️ [BOT INTERNO] Conexão perdida, tentando reconectar em 10 segundos...');
+                    clearInterval(internalBot.keepAliveInterval);
+                    reconnectTimeout = setTimeout(() => iniciarBotInterno(), 10000);
                 }
-            }, 5 * 60 * 1000);
+            }, 4 * 60 * 1000); // 4 minutos
         });
         
-        InternalBot.on('error', (err) => {
+        internalBot.on('message', (data) => {
+            console.log(`📥 [BOT INTERNO] Resposta do servidor: ${data.toString().slice(0, 80)}`);
+        });
+        
+        internalBot.on('error', (err) => {
             console.log(`❌ [BOT INTERNO] Erro: ${err.message}`);
-            setTimeout(() => iniciarBotInterno(), 10000);
+            if (internalBot) internalBot.terminate();
+            if (!reconnectTimeout) reconnectTimeout = setTimeout(() => iniciarBotInterno(), 15000);
         });
         
-        InternalBot.on('close', () => {
-            console.log('🔌 [BOT INTERNO] Desconectado! Reconectando...');
-            setTimeout(() => iniciarBotInterno(), 10000);
+        internalBot.on('close', () => {
+            console.log('🔌 [BOT INTERNO] Desconectado! Tentando reconectar em 15 segundos...');
+            if (internalBot.keepAliveInterval) clearInterval(internalBot.keepAliveInterval);
+            if (!reconnectTimeout) reconnectTimeout = setTimeout(() => iniciarBotInterno(), 15000);
         });
         
-    }, 5000);
+    } catch (err) {
+        console.log(`❌ [BOT INTERNO] Falha ao criar conexão: ${err.message}`);
+        reconnectTimeout = setTimeout(() => iniciarBotInterno(), 15000);
+    }
 }
 
-// Iniciar servidor
+// ============================================
+// START SERVER
+// ============================================
 server.listen(PORT, '0.0.0.0', () => {
     console.log(`
 ╔════════════════════════════════════════════╗
@@ -177,9 +219,12 @@ server.listen(PORT, '0.0.0.0', () => {
 ║  Painel:    http://localhost:${PORT}         ║
 ║  WSS Bots:  ws://localhost:${PORT}/on       ║
 ║                                            ║
-║  🤖 BOT INTERNO ATIVO!                     ║
+║  🤖 BOT INTERNO CORRIGIDO ATIVO!           ║
 ╚════════════════════════════════════════════╝
     `);
     
-    setTimeout(iniciarBotInterno, 3000);
+    // Aguarda 3 segundos e inicia o bot interno com o domínio correto
+    setTimeout(() => {
+        iniciarBotInterno();
+    }, 3000);
 });
