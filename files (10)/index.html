@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>WSS Control Panel · ws-LNZ.online</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+/* ════════════════════════════════════════
+   BASE
+════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:   #060a0f;
+  --bg1:  #0b1018;
+  --bg2:  #0f1520;
+  --bg3:  #141c28;
+  --b:    #1c2535;
+  --b2:   #243040;
+  --tx:   #b8c8d8;
+  --tx2:  #6a7f94;
+  --tx3:  #3d5268;
+  --on:   #00e5a0;
+  --on2:  #00b87a;
+  --bl:   #0ea5e9;
+  --bl2:  #0284c7;
+  --ye:   #f59e0b;
+  --re:   #ef4444;
+  --pu:   #a78bfa;
+  --gr:   #22c55e;
+  --font: 'IBM Plex Mono', monospace;
+}
+html{font-size:13px;scroll-behavior:smooth}
+body{
+  background:var(--bg);
+  color:var(--tx);
+  font-family:var(--font);
+  min-height:100vh;
+  line-height:1.55;
+  overflow-x:hidden;
+}
+
+/* grid bg */
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  background:
+    linear-gradient(rgba(0,229,160,.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,229,160,.025) 1px,transparent 1px);
+  background-size:48px 48px;
+  pointer-events:none;z-index:0;
+}
+/* glow orbs */
+body::after{
+  content:'';
+  position:fixed;
+  top:-300px;right:-300px;
+  width:700px;height:700px;
+  background:radial-gradient(circle,rgba(14,165,233,.07) 0%,transparent 65%);
+  pointer-events:none;z-index:0;
+}
+
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px}
+::-webkit-scrollbar-thumb:hover{background:var(--on)}
+
+/* ════════════════════════════════════════
+   LAYOUT
+════════════════════════════════════════ */
+.wrap{position:relative;z-index:1;max-width:1380px;margin:0 auto;padding:0 18px 60px}
+
+/* ════════════════════════════════════════
+   HEADER
+════════════════════════════════════════ */
+header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px 0 16px;
+  border-bottom:1px solid var(--b);
+  margin-bottom:22px;gap:12px;flex-wrap:wrap;
+}
+.logo{display:flex;align-items:center;gap:12px}
+.logo-sq{
+  width:38px;height:38px;
+  background:linear-gradient(135deg,var(--on),var(--bl));
+  border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;
+  box-shadow:0 0 20px rgba(0,229,160,.25),0 0 40px rgba(0,229,160,.08);
+  flex-shrink:0;
+}
+.logo-text h1{font-size:14px;font-weight:700;color:#fff;letter-spacing:.4px}
+.logo-text p{font-size:11px;color:var(--on);letter-spacing:.3px;font-weight:500}
+
+.hdr-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+
+/* WSS status badge */
+.wss-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:5px 14px;border-radius:4px;
+  font-size:11px;font-weight:700;letter-spacing:.8px;
+  text-transform:uppercase;
+  border:1px solid;
+  transition:all .3s;
+}
+.wss-badge.online{ color:var(--on);border-color:rgba(0,229,160,.35);background:rgba(0,229,160,.07); }
+.wss-badge.offline{ color:var(--re);border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.07); }
+.wss-badge.maint{ color:var(--ye);border-color:rgba(245,158,11,.35);background:rgba(245,158,11,.07); }
+
+.dot{width:7px;height:7px;border-radius:50%;background:currentColor;flex-shrink:0}
+.dot.blink{animation:blink 1.2s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* token input */
+.tok-wrap{display:flex;gap:6px}
+.tok-wrap input{
+  background:var(--bg2);border:1px solid var(--b2);color:var(--tx);
+  padding:5px 10px;border-radius:4px;
+  font-family:var(--font);font-size:11px;width:140px;outline:none;
+  transition:border-color .2s;
+}
+.tok-wrap input:focus{border-color:var(--on)}
+.tok-wrap input::placeholder{color:var(--tx3)}
+
+/* ════════════════════════════════════════
+   BUTTONS
+════════════════════════════════════════ */
+.btn{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:6px 14px;border-radius:4px;
+  font-family:var(--font);font-size:11px;font-weight:600;
+  letter-spacing:.3px;text-transform:uppercase;
+  cursor:pointer;border:1px solid;
+  transition:all .18s;white-space:nowrap;
+  position:relative;overflow:hidden;
+}
+.btn::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(rgba(255,255,255,.06),transparent);
+  opacity:0;transition:opacity .18s;
+}
+.btn:hover::after{opacity:1}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn:active:not(:disabled){transform:scale(.97)}
+
+.btn-g{background:rgba(0,229,160,.08);border-color:rgba(0,229,160,.35);color:var(--on)}
+.btn-g:hover:not(:disabled){background:rgba(0,229,160,.15);box-shadow:0 0 14px rgba(0,229,160,.2)}
+.btn-b{background:rgba(14,165,233,.08);border-color:rgba(14,165,233,.35);color:var(--bl)}
+.btn-b:hover:not(:disabled){background:rgba(14,165,233,.15)}
+.btn-y{background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.35);color:var(--ye)}
+.btn-y:hover:not(:disabled){background:rgba(245,158,11,.15)}
+.btn-r{background:rgba(239,68,68,.07);border-color:rgba(239,68,68,.3);color:var(--re)}
+.btn-r:hover:not(:disabled){background:rgba(239,68,68,.15);box-shadow:0 0 14px rgba(239,68,68,.15)}
+.btn-gh{background:transparent;border-color:var(--b2);color:var(--tx2)}
+.btn-gh:hover:not(:disabled){border-color:var(--tx);color:var(--tx)}
+.btn-sm{padding:4px 10px;font-size:10px}
+.btn-xs{padding:3px 8px;font-size:10px}
+
+/* ════════════════════════════════════════
+   STAT CARDS
+════════════════════════════════════════ */
+.stat-row{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:12px;margin-bottom:16px;
+}
+.scard{
+  background:var(--bg1);border:1px solid var(--b);border-radius:8px;
+  padding:16px 18px;
+  position:relative;overflow:hidden;
+  transition:border-color .2s;
+}
+.scard::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--ac,var(--on)),transparent);
+  opacity:.5;
+}
+.scard:hover{border-color:var(--b2)}
+.sc-label{font-size:9px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:var(--tx3);margin-bottom:8px}
+.sc-val{font-size:28px;font-weight:700;color:#fff;line-height:1;margin-bottom:6px;font-variant-numeric:tabular-nums}
+.sc-sub{font-size:10px;display:flex;align-items:center;gap:4px}
+.sc-sub.ok{color:var(--gr)} .sc-sub.warn{color:var(--ye)} .sc-sub.info{color:var(--bl)} .sc-sub.muted{color:var(--tx2)}
+
+/* ════════════════════════════════════════
+   PANELS
+════════════════════════════════════════ */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px}
+@media(max-width:960px){.grid2,.grid3{grid-template-columns:1fr}}
+
+.panel{
+  background:var(--bg1);border:1px solid var(--b);border-radius:8px;
+  overflow:hidden;
+}
+.ph{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:11px 16px;border-bottom:1px solid var(--b);
+  background:rgba(255,255,255,.015);
+}
+.ph-title{
+  font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;
+  color:var(--tx2);display:flex;align-items:center;gap:7px;
+}
+.ph-ico{font-size:13px}
+.pb{padding:16px}
+
+/* ════════════════════════════════════════
+   CONTROL GRID
+════════════════════════════════════════ */
+.ctrl-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ctrl-item{
+  display:flex;align-items:center;justify-content:space-between;
+  background:rgba(255,255,255,.018);
+  border:1px solid var(--b);border-radius:6px;
+  padding:9px 12px;transition:border-color .2s;gap:8px;
+}
+.ctrl-item:hover{border-color:var(--b2)}
+.ctrl-info .cn{font-size:11px;font-weight:600;color:var(--tx)}
+.ctrl-info .cd{font-size:10px;color:var(--tx2);margin-top:1px}
+
+/* Toggle */
+.tog{position:relative;width:34px;height:18px;flex-shrink:0}
+.tog input{position:absolute;opacity:0;width:0;height:0}
+.tog-sl{
+  position:absolute;inset:0;background:var(--b2);border-radius:18px;
+  cursor:pointer;transition:background .25s;
+}
+.tog-sl::before{
+  content:'';position:absolute;
+  width:12px;height:12px;left:3px;top:3px;
+  background:var(--tx2);border-radius:50%;
+  transition:transform .25s,background .25s;
+}
+.tog input:checked~.tog-sl{background:rgba(0,229,160,.25)}
+.tog input:checked~.tog-sl::before{transform:translateX(16px);background:var(--on)}
+
+/* ════════════════════════════════════════
+   SECURITY
+════════════════════════════════════════ */
+.sec-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 0;border-bottom:1px solid var(--b);gap:8px;flex-wrap:wrap;
+}
+.sec-row:last-child{border-bottom:none}
+.sec-lbl{font-size:10px;color:var(--tx2);min-width:110px;font-weight:600;text-transform:uppercase;letter-spacing:.8px}
+.sec-val{font-size:11px;color:var(--tx);font-weight:600;display:flex;align-items:center;gap:7px;flex:1;word-break:break-all}
+.badge{padding:2px 7px;border-radius:3px;font-size:9px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;border:1px solid}
+.b-gr{color:var(--gr);border-color:rgba(34,197,94,.3);background:rgba(34,197,94,.1)}
+.b-bl{color:var(--bl);border-color:rgba(14,165,233,.3);background:rgba(14,165,233,.08)}
+.b-re{color:var(--re);border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.08)}
+.b-ye{color:var(--ye);border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.08)}
+.sec-acts{display:flex;gap:5px;flex-shrink:0}
+
+/* ════════════════════════════════════════
+   DANGER
+════════════════════════════════════════ */
+.panel-danger{border-color:rgba(239,68,68,.2)!important}
+.panel-danger .ph-title{color:var(--re)}
+.danger-btns{display:flex;gap:8px;flex-wrap:wrap}
+
+/* ════════════════════════════════════════
+   BOTS TABLE
+════════════════════════════════════════ */
+.bot-list{display:flex;flex-direction:column;gap:6px;min-height:60px}
+.bot-item{
+  display:flex;align-items:center;justify-content:space-between;
+  background:rgba(0,229,160,.04);border:1px solid rgba(0,229,160,.12);
+  border-radius:5px;padding:8px 12px;gap:8px;flex-wrap:wrap;
+  animation:fadeIn .3s ease;
+}
+.bot-id{font-size:11px;font-weight:700;color:var(--on)}
+.bot-meta{font-size:10px;color:var(--tx2);flex:1}
+.bot-msgs{font-size:10px;color:var(--bl);font-weight:600}
+
+/* ════════════════════════════════════════
+   LOG
+════════════════════════════════════════ */
+.log-box{height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:3px}
+.log-entry{
+  display:flex;align-items:flex-start;gap:8px;
+  padding:6px 8px;border-radius:4px;
+  border-left:3px solid;
+  background:rgba(255,255,255,.015);
+  animation:fadeIn .25s ease;font-size:11px;
+}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:none}}
+.log-entry.connect   {border-color:var(--gr)}
+.log-entry.disconnect{border-color:var(--re)}
+.log-entry.data      {border-color:var(--bl)}
+.log-entry.error     {border-color:var(--re);background:rgba(239,68,68,.04)}
+.log-entry.admin     {border-color:var(--pu)}
+.log-entry.backup    {border-color:var(--ye)}
+.log-entry.server    {border-color:var(--on)}
+.log-entry.panel     {border-color:var(--bl)}
+.log-time{color:var(--tx3);font-size:10px;white-space:nowrap;flex-shrink:0;margin-top:1px}
+.log-type{font-weight:700;font-size:9px;width:58px;flex-shrink:0;text-transform:uppercase;letter-spacing:.5px;margin-top:1px}
+.log-entry.connect    .log-type{color:var(--gr)}
+.log-entry.disconnect .log-type{color:var(--re)}
+.log-entry.data       .log-type{color:var(--bl)}
+.log-entry.error      .log-type{color:var(--re)}
+.log-entry.admin      .log-type{color:var(--pu)}
+.log-entry.backup     .log-type{color:var(--ye)}
+.log-entry.server     .log-type{color:var(--on)}
+.log-entry.panel      .log-type{color:var(--bl)}
+.log-msg{color:var(--tx);flex:1;word-break:break-all;line-height:1.4}
+
+/* ════════════════════════════════════════
+   BRAINROTS
+════════════════════════════════════════ */
+.br-list{height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:5px}
+.br-item{
+  background:rgba(14,165,233,.04);border:1px solid rgba(14,165,233,.1);
+  border-radius:5px;padding:8px 12px;
+  animation:fadeIn .25s ease;
+}
+.br-meta{font-size:10px;color:var(--tx2);margin-bottom:3px;display:flex;gap:10px}
+.br-data{font-size:11px;color:var(--bl);word-break:break-all}
+
+/* ════════════════════════════════════════
+   CODE TABS
+════════════════════════════════════════ */
+.tabs{display:flex;border-bottom:1px solid var(--b)}
+.tab{
+  padding:8px 16px;font-size:11px;font-weight:600;
+  color:var(--tx2);background:none;border:none;
+  border-bottom:2px solid transparent;margin-bottom:-1px;
+  cursor:pointer;font-family:var(--font);transition:all .15s;
+  letter-spacing:.3px;
+}
+.tab:hover{color:var(--tx)}
+.tab.active{color:var(--on);border-bottom-color:var(--on)}
+.tab-panel{display:none;position:relative}
+.tab-panel.active{display:block}
+pre{
+  background:var(--bg);padding:16px;
+  font-family:var(--font);font-size:11.5px;line-height:1.75;
+  overflow-x:auto;color:var(--tx);
+}
+.copy-code{
+  position:absolute;top:8px;right:8px;
+  background:var(--bg2);border:1px solid var(--b2);color:var(--tx2);
+  padding:3px 9px;border-radius:3px;font-size:10px;cursor:pointer;
+  font-family:var(--font);transition:all .15s;
+}
+.copy-code:hover{color:var(--on);border-color:var(--on)}
+.kw{color:#f97316}.str{color:#86efac}.cm{color:#4b6180;font-style:italic}
+.fn{color:#c4b5fd}.num{color:#67e8f9}.var{color:#fcd34d}.op{color:var(--tx2)}
+
+/* ════════════════════════════════════════
+   TOAST
+════════════════════════════════════════ */
+.toasts{position:fixed;bottom:18px;right:18px;display:flex;flex-direction:column;gap:7px;z-index:999}
+.toast{
+  padding:9px 15px;border-radius:5px;font-size:11px;font-weight:500;
+  border:1px solid;backdrop-filter:blur(12px);max-width:280px;
+  animation:toastIn .25s ease;
+}
+@keyframes toastIn{from{transform:translateX(20px);opacity:0}to{transform:none;opacity:1}}
+.toast.ok{ background:rgba(34,197,94,.1); border-color:rgba(34,197,94,.3); color:var(--gr) }
+.toast.err{background:rgba(239,68,68,.1); border-color:rgba(239,68,68,.3); color:var(--re)}
+.toast.inf{background:rgba(0,229,160,.08);border-color:rgba(0,229,160,.3); color:var(--on)}
+.toast.wrn{background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.3);color:var(--ye)}
+
+/* ════════════════════════════════════════
+   MODAL
+════════════════════════════════════════ */
+.overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.75);backdrop-filter:blur(5px);
+  z-index:990;align-items:center;justify-content:center;
+}
+.overlay.open{display:flex}
+.modal{
+  background:var(--bg2);border:1px solid var(--b2);border-radius:10px;
+  padding:26px;max-width:380px;width:90%;
+  box-shadow:0 24px 60px rgba(0,0,0,.6);
+}
+.modal h3{font-size:14px;font-weight:700;color:#fff;margin-bottom:7px}
+.modal p{color:var(--tx2);font-size:12px;margin-bottom:20px;line-height:1.6}
+.modal-acts{display:flex;gap:8px;justify-content:flex-end}
+
+.empty{color:var(--tx3);font-size:11px;text-align:center;padding:28px 0}
+.gap{margin-bottom:14px}
+.full{grid-column:1/-1}
+.sep{border:none;border-top:1px solid var(--b);margin:14px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ═══════════ HEADER ═══════════ -->
+<header>
+  <div class="logo">
+    <div class="logo-sq">⚡</div>
+    <div class="logo-text">
+      <h1>WSS CONTROL PANEL</h1>
+      <p>wss://ws-LNZ.online/on</p>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <div class="wss-badge online" id="wssBadge">
+      <span class="dot blink" id="wssD"></span>
+      <span id="wssTxt">WSS ONLINE</span>
+    </div>
+    <div class="wss-badge" id="maintBadge" style="display:none">
+      <span class="dot"></span>MANUTENÇÃO
+    </div>
+    <div class="tok-wrap">
+      <input type="password" id="tok" placeholder="Admin token…" value="admin123"/>
+      <button class="btn btn-gh btn-sm" onclick="authCheck()">AUTH</button>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════════ STATS ═══════════ -->
+<div class="stat-row gap">
+  <div class="scard" style="--ac:var(--on)">
+    <div class="sc-label">Server Uptime</div>
+    <div class="sc-val" id="sUp">0d 0h 0m</div>
+    <div class="sc-sub ok">● Online</div>
+  </div>
+  <div class="scard" style="--ac:var(--bl)">
+    <div class="sc-label">Memory Usage</div>
+    <div class="sc-val" id="sMem">— MB</div>
+    <div class="sc-sub muted" id="sMemSub">Normal</div>
+  </div>
+  <div class="scard" style="--ac:var(--pu)">
+    <div class="sc-label">Total Brainrots</div>
+    <div class="sc-val" id="sBr">0</div>
+    <div class="sc-sub info">↑ <span id="sBrT">0</span> hoje</div>
+  </div>
+  <div class="scard" style="--ac:var(--gr)">
+    <div class="sc-label">Bots Online</div>
+    <div class="sc-val" id="sBots">0</div>
+    <div class="sc-sub ok" id="sBotSub">Nenhum conectado</div>
+  </div>
+</div>
+
+<!-- ═══════════ CONTROLS + SECURITY ═══════════ -->
+<div class="grid2 gap">
+
+  <!-- Controles -->
+  <div class="panel">
+    <div class="ph">
+      <div class="ph-title"><span class="ph-ico">⚙</span>Server Controls</div>
+    </div>
+    <div class="pb">
+      <div class="ctrl-grid">
+
+        <div class="ctrl-item">
+          <div class="ctrl-info">
+            <div class="cn">WebSocket (WSS)</div>
+            <div class="cd">Aceitar conexões de bots</div>
+          </div>
+          <label class="tog">
+            <input type="checkbox" id="togWss" checked onchange="toggleWss(this)"/>
+            <span class="tog-sl"></span>
+          </label>
+        </div>
+
+        <div class="ctrl-item">
+          <div class="ctrl-info">
+            <div class="cn">Manutenção</div>
+            <div class="cd">Bloqueia novos bots</div>
+          </div>
+          <label class="tog">
+            <input type="checkbox" id="togMaint" onchange="toggleMaint(this)"/>
+            <span class="tog-sl"></span>
+          </label>
+        </div>
+
+        <div class="ctrl-item">
+          <div class="ctrl-info">
+            <div class="cn">Auto-Backup</div>
+            <div class="cd">Backup automático 1h</div>
+          </div>
+          <label class="tog">
+            <input type="checkbox" id="togBk" checked onchange="toggleBackup(this)"/>
+            <span class="tog-sl"></span>
+          </label>
+        </div>
+
+        <div class="ctrl-item">
+          <div class="ctrl-info">
+            <div class="cn">Backup Manual</div>
+            <div class="cd" id="lastBk">Nunca</div>
+          </div>
+          <button class="btn btn-b btn-sm" onclick="backupNow()">▶ Run</button>
+        </div>
+
+        <div class="ctrl-item">
+          <div class="ctrl-info">
+            <div class="cn">Kick All Bots</div>
+            <div class="cd">Desconecta todos</div>
+          </div>
+          <button class="btn btn-y btn-sm" onclick="confirm_('kick')">↯ Kick</button>
+        </div>
+
+        <div class="ctrl-item">
+          <div class="ctrl-info">
+            <div class="cn">Painéis Ativos</div>
+            <div class="cd">Instâncias do painel</div>
+          </div>
+          <span style="color:var(--bl);font-weight:700;font-size:13px" id="sPanels">0</span>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Segurança -->
+  <div class="panel">
+    <div class="ph">
+      <div class="ph-title"><span class="ph-ico">🔒</span>Security</div>
+    </div>
+    <div class="pb">
+      <div class="sec-row">
+        <div class="sec-lbl">Encryption</div>
+        <div class="sec-val">AES-256-GCM <span class="badge b-gr">Active</span></div>
+      </div>
+      <div class="sec-row">
+        <div class="sec-lbl">Enc. Key</div>
+        <div class="sec-val"><span id="encKey">••••••••••••••••</span></div>
+        <div class="sec-acts">
+          <button class="btn btn-gh btn-xs" onclick="revealKey()">👁</button>
+          <button class="btn btn-y btn-xs" onclick="regenKey()">⟳ Regen</button>
+        </div>
+      </div>
+      <div class="sec-row">
+        <div class="sec-lbl">Admin Token</div>
+        <div class="sec-val"><span id="adminTokD">••••••••</span> <span class="badge b-bl">Protected</span></div>
+        <div class="sec-acts">
+          <button class="btn btn-gh btn-xs" onclick="revealTok()">👁</button>
+        </div>
+      </div>
+      <div class="sec-row">
+        <div class="sec-lbl">Heartbeat</div>
+        <div class="sec-val">30s ping/pong <span class="badge b-gr">On</span></div>
+      </div>
+      <div class="sec-row">
+        <div class="sec-lbl">Rate Limit</div>
+        <div class="sec-val">200 req/min <span class="badge b-gr">On</span></div>
+      </div>
+      <div class="sec-row">
+        <div class="sec-lbl">WSS Path</div>
+        <div class="sec-val" style="color:var(--on);font-size:10px">/on</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════ BOTS ONLINE ═══════════ -->
+<div class="panel gap">
+  <div class="ph">
+    <div class="ph-title"><span class="ph-ico">🤖</span>Bots Online</div>
+    <span id="botsCount" style="font-size:10px;color:var(--tx2)">0 conectados</span>
+  </div>
+  <div class="pb">
+    <div class="bot-list" id="botList"><div class="empty">Nenhum bot conectado</div></div>
+  </div>
+</div>
+
+<!-- ═══════════ LOG + BRAINROTS ═══════════ -->
+<div class="grid2 gap">
+  <div class="panel">
+    <div class="ph">
+      <div class="ph-title"><span class="ph-ico">📡</span>Event Log</div>
+      <button class="btn btn-gh btn-xs" onclick="clearLog()">✕ Limpar</button>
+    </div>
+    <div class="pb" style="padding:10px">
+      <div class="log-box" id="logBox"><div class="empty">Aguardando eventos…</div></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="ph">
+      <div class="ph-title"><span class="ph-ico">📦</span>Brainrots Recebidos</div>
+      <span id="brCnt" style="font-size:10px;color:var(--tx2)">0</span>
+    </div>
+    <div class="pb" style="padding:10px">
+      <div class="br-list" id="brList"><div class="empty">Nenhum brainrot ainda</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ DANGER ZONE ═══════════ -->
+<div class="panel panel-danger gap">
+  <div class="ph">
+    <div class="ph-title"><span class="ph-ico">⚠</span>Danger Zone</div>
+  </div>
+  <div class="pb">
+    <div class="danger-btns">
+      <button class="btn btn-r" onclick="confirm_('kick')">↯ Desconectar Todos os Bots</button>
+      <button class="btn btn-r" onclick="confirm_('clear')">🗑 Limpar Todos os Brainrots</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ CODE EXAMPLES ═══════════ -->
+<div class="panel gap">
+  <div class="ph">
+    <div class="ph-title"><span class="ph-ico">📝</span>Como conectar à WSS</div>
+  </div>
+  <div class="tabs" id="tabs">
+    <button class="tab active" data-tab="py">Python</button>
+    <button class="tab" data-tab="lua">Lua</button>
+    <button class="tab" data-tab="js">Node.js</button>
+    <button class="tab" data-tab="dc">Discord Bot</button>
+    <button class="tab" data-tab="go">Go</button>
+  </div>
+
+  <div class="tab-panel active" id="tp-py">
+    <button class="copy-code" onclick="copyTab('py')">Copy</button>
+    <pre><span class="cm"># pip install websocket-client</span>
+<span class="kw">import</span> websocket, json, threading
+
+<span class="kw">def</span> <span class="fn">on_open</span>(ws):
+    <span class="fn">print</span>(<span class="str">"✅ Conectado à WSS!"</span>)
+    ws.send(json.dumps({
+        <span class="str">"bot"</span>:     <span class="str">"python"</span>,
+        <span class="str">"dados"</span>:   <span class="str">"meu brainrot"</span>,
+        <span class="str">"extra"</span>:   {<span class="str">"qualquer"</span>: <span class="str">"coisa"</span>}
+    }))
+
+<span class="kw">def</span> <span class="fn">on_message</span>(ws, msg):
+    data = json.loads(msg)
+    <span class="fn">print</span>(<span class="str">f"Recebido: {data}"</span>)
+
+<span class="kw">def</span> <span class="fn">on_error</span>(ws, err):
+    <span class="fn">print</span>(<span class="str">f"Erro: {err}"</span>)
+
+<span class="kw">def</span> <span class="fn">on_close</span>(ws, code, msg):
+    <span class="fn">print</span>(<span class="str">"Desconectado"</span>)
+
+ws = websocket.WebSocketApp(
+    <span class="str">"wss://ws-LNZ.online/on"</span>,
+    on_open=on_open,
+    on_message=on_message,
+    on_error=on_error,
+    on_close=on_close
+)
+ws.run_forever()</pre>
+  </div>
+
+  <div class="tab-panel" id="tp-lua">
+    <button class="copy-code" onclick="copyTab('lua')">Copy</button>
+    <pre><span class="cm">-- luarocks install lua-websockets</span>
+<span class="kw">local</span> websocket = <span class="fn">require</span>(<span class="str">"websocket"</span>)
+<span class="kw">local</span> json      = <span class="fn">require</span>(<span class="str">"dkjson"</span>)
+
+<span class="kw">local</span> client = websocket.client.sync({ timeout = <span class="num">10</span> })
+<span class="kw">local</span> ok, err = client:<span class="fn">connect</span>(<span class="str">"wss://ws-LNZ.online/on"</span>, <span class="str">"wss"</span>)
+
+<span class="kw">if not</span> ok <span class="kw">then</span>
+    <span class="fn">print</span>(<span class="str">"Erro:"</span>, err); <span class="kw">return</span>
+<span class="kw">end</span>
+
+<span class="fn">print</span>(<span class="str">"Conectado!"</span>)
+
+client:<span class="fn">send</span>(json.<span class="fn">encode</span>({
+    bot   = <span class="str">"lua"</span>,
+    dados = <span class="str">"brainrot aqui"</span>
+}))
+
+<span class="kw">local</span> msg = client:<span class="fn">receive</span>()
+<span class="fn">print</span>(<span class="str">"Resposta:"</span>, msg)
+client:<span class="fn">close</span>()</pre>
+  </div>
+
+  <div class="tab-panel" id="tp-js">
+    <button class="copy-code" onclick="copyTab('js')">Copy</button>
+    <pre><span class="cm">// npm install ws</span>
+<span class="kw">const</span> WebSocket = <span class="fn">require</span>(<span class="str">'ws'</span>)
+
+<span class="kw">const</span> ws = <span class="kw">new</span> <span class="fn">WebSocket</span>(<span class="str">'wss://ws-LNZ.online/on'</span>)
+
+ws.<span class="fn">on</span>(<span class="str">'open'</span>, () => {
+    <span class="var">console</span>.<span class="fn">log</span>(<span class="str">'✅ Conectado!'</span>)
+    ws.<span class="fn">send</span>(JSON.<span class="fn">stringify</span>({
+        bot:   <span class="str">'nodejs'</span>,
+        dados: <span class="str">'brainrot'</span>,
+        ts:    Date.<span class="fn">now</span>()
+    }))
+})
+
+ws.<span class="fn">on</span>(<span class="str">'message'</span>, data => {
+    <span class="var">console</span>.<span class="fn">log</span>(<span class="str">'📩'</span>, JSON.<span class="fn">parse</span>(data.<span class="fn">toString</span>()))
+})
+
+ws.<span class="fn">on</span>(<span class="str">'close'</span>, () => <span class="var">console</span>.<span class="fn">log</span>(<span class="str">'Desconectado'</span>))
+ws.<span class="fn">on</span>(<span class="str">'error'</span>, err => <span class="var">console</span>.<span class="fn">error</span>(<span class="str">'Erro:'</span>, err.<span class="var">message</span>))</pre>
+  </div>
+
+  <div class="tab-panel" id="tp-dc">
+    <button class="copy-code" onclick="copyTab('dc')">Copy</button>
+    <pre><span class="cm">// npm install discord.js ws</span>
+<span class="kw">const</span> { Client, GatewayIntentBits } = <span class="fn">require</span>(<span class="str">'discord.js'</span>)
+<span class="kw">const</span> WebSocket = <span class="fn">require</span>(<span class="str">'ws'</span>)
+
+<span class="kw">const</span> bot = <span class="kw">new</span> <span class="fn">Client</span>({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent] })
+
+<span class="kw">let</span> wss = <span class="kw">null</span>
+
+<span class="kw">function</span> <span class="fn">connectWss</span>() {
+    wss = <span class="kw">new</span> <span class="fn">WebSocket</span>(<span class="str">'wss://ws-LNZ.online/on'</span>)
+    wss.<span class="fn">on</span>(<span class="str">'open'</span>, () => <span class="var">console</span>.<span class="fn">log</span>(<span class="str">'✅ WSS online!'</span>))
+    wss.<span class="fn">on</span>(<span class="str">'close'</span>, () => <span class="fn">setTimeout</span>(connectWss, <span class="num">5000</span>)) <span class="cm">// reconecta</span>
+}
+
+bot.<span class="fn">on</span>(<span class="str">'ready'</span>, () => {
+    <span class="var">console</span>.<span class="fn">log</span>(<span class="str">`Bot: ${bot.user.tag}`</span>)
+    <span class="fn">connectWss</span>()
+})
+
+bot.<span class="fn">on</span>(<span class="str">'messageCreate'</span>, msg => {
+    <span class="kw">if</span> (msg.author.bot) <span class="kw">return</span>
+    <span class="kw">if</span> (msg.content.<span class="fn">startsWith</span>(<span class="str">'!enviar '</span>)) {
+        <span class="kw">const</span> texto = msg.content.<span class="fn">slice</span>(<span class="num">8</span>)
+        wss?.<span class="fn">send</span>(JSON.<span class="fn">stringify</span>({
+            bot:    <span class="str">'discord'</span>,
+            autor:  msg.author.tag,
+            guild:  msg.guild?.name,
+            dados:  texto,
+        }))
+        msg.<span class="fn">reply</span>(<span class="str">'📡 Enviado para a WSS!'</span>)
+    }
+})
+
+bot.<span class="fn">login</span>(<span class="str">'SEU_TOKEN_DISCORD'</span>)</pre>
+  </div>
+
+  <div class="tab-panel" id="tp-go">
+    <button class="copy-code" onclick="copyTab('go')">Copy</button>
+    <pre><span class="cm">// go get github.com/gorilla/websocket</span>
+<span class="kw">package</span> main
+
+<span class="kw">import</span> (
+    <span class="str">"encoding/json"</span>
+    <span class="str">"fmt"</span>
+    <span class="str">"github.com/gorilla/websocket"</span>
+    <span class="str">"net/url"</span>
+)
+
+<span class="kw">func</span> <span class="fn">main</span>() {
+    u := url.<span class="fn">URL</span>{Scheme: <span class="str">"wss"</span>, Host: <span class="str">"ws-LNZ.online"</span>, Path: <span class="str">"/on"</span>}
+    c, _, err := websocket.DefaultDialer.<span class="fn">Dial</span>(u.<span class="fn">String</span>(), <span class="kw">nil</span>)
+    <span class="kw">if</span> err != <span class="kw">nil</span> {
+        <span class="fn">panic</span>(err)
+    }
+    <span class="kw">defer</span> c.<span class="fn">Close</span>()
+
+    payload, _ := json.<span class="fn">Marshal</span>(<span class="kw">map</span>[<span class="kw">string</span>]<span class="kw">interface</span>{}{
+        <span class="str">"bot"</span>:   <span class="str">"golang"</span>,
+        <span class="str">"dados"</span>: <span class="str">"brainrot do Go"</span>,
+    })
+
+    c.<span class="fn">WriteMessage</span>(websocket.TextMessage, payload)
+
+    _, msg, _ := c.<span class="fn">ReadMessage</span>()
+    fmt.<span class="fn">Printf</span>(<span class="str">"Resposta: %s\n"</span>, msg)
+}</pre>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+
+<!-- TOASTS -->
+<div class="toasts" id="toasts"></div>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h3 id="mTitle">Confirmar</h3>
+    <p id="mDesc">Tem certeza?</p>
+    <div class="modal-acts">
+      <button class="btn btn-gh" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-r" onclick="execAction()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ════════════════════════════════════════
+   ESTADO
+════════════════════════════════════════ */
+let _ws = null;
+let _pending = null;
+let _bots = {};
+let _brainrots = [];
+let _keyShown = false;
+let _tokShown = false;
+let _stats = {};
+
+/* ════════════════════════════════════════
+   WS → BACKEND
+════════════════════════════════════════ */
+function connect() {
+  const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+  _ws = new WebSocket(`${proto}//${location.host}/ws`);
+
+  _ws.onopen = () => console.log('[dash] conectado');
+
+  _ws.onmessage = e => {
+    try { handle(JSON.parse(e.data)); } catch {}
+  };
+
+  _ws.onclose = () => {
+    console.log('[dash] desconectado — tentando em 3s');
+    setTimeout(connect, 3000);
+  };
+  _ws.onerror = () => {};
+}
+
+function handle(msg) {
+  switch (msg.event) {
+    case 'init':
+      applyStats(msg.stats);
+      if (msg.events)    msg.events.slice().reverse().forEach(e => addLog(e, false));
+      if (msg.brainrots) { _brainrots = msg.brainrots; renderBrainrots(); }
+      break;
+    case 'stats':        applyStats(msg.stats); break;
+    case 'log':          addLog(msg.entry); break;
+    case 'brainrot':     addBrainrot(msg.brainrot); if(msg.stats) applyStats(msg.stats); break;
+    case 'bot_connected':    if(msg.stats) applyStats(msg.stats); break;
+    case 'bot_disconnected': if(msg.stats) applyStats(msg.stats); break;
+    case 'cleared':      _brainrots = []; renderBrainrots(); break;
+  }
+}
+
+/* ════════════════════════════════════════
+   STATS
+════════════════════════════════════════ */
+function applyStats(s) {
+  if (!s) return;
+  _stats = s;
+
+  setText('sUp',   s.uptime || '—');
+  setText('sMem',  s.memMB ? s.memMB + ' MB' : '—');
+  setText('sBr',   fmt(s.totalBrainrots));
+  setText('sBrT',  s.todayBrainrots || 0);
+  setText('sBots', s.botsOnline || 0);
+  setText('sPanels', s.panelsOnline || 0);
+
+  // memory warning
+  const ms = document.getElementById('sMemSub');
+  if (s.memMB > 300) { ms.className = 'sc-sub warn'; ms.textContent = '⚠ High'; }
+  else { ms.className = 'sc-sub muted'; ms.textContent = 'Normal'; }
+
+  // bots sub
+  const bs = document.getElementById('sBotSub');
+  if (s.botsOnline > 0) { bs.className = 'sc-sub ok'; bs.textContent = `${s.botsOnline} ativo(s)`; }
+  else { bs.className = 'sc-sub muted'; bs.textContent = 'Nenhum conectado'; }
+
+  // toggles
+  setChk('togWss',   s.wssEnabled);
+  setChk('togMaint', s.maintenanceMode);
+  setChk('togBk',    s.autoBackup);
+
+  // badges header
+  const badge = document.getElementById('wssBadge');
+  const dot   = document.getElementById('wssD');
+  const txt   = document.getElementById('wssTxt');
+  const maint = document.getElementById('maintBadge');
+
+  if (s.maintenanceMode) {
+    badge.className = 'wss-badge maint';
+    dot.className = 'dot'; txt.textContent = 'MANUTENÇÃO';
+    maint.style.display = 'none';
+  } else if (s.wssEnabled) {
+    badge.className = 'wss-badge online';
+    dot.className = 'dot blink'; txt.textContent = 'WSS ONLINE';
+    maint.style.display = 'none';
+  } else {
+    badge.className = 'wss-badge offline';
+    dot.className = 'dot'; txt.textContent = 'WSS OFFLINE';
+    maint.style.display = 'none';
+  }
+
+  // last backup
+  if (s.lastBackup) {
+    document.getElementById('lastBk').textContent = 'Último: ' + new Date(s.lastBackup).toLocaleTimeString('pt-BR');
+  }
+
+  // bots list
+  renderBots(s.bots || []);
+}
+
+/* ════════════════════════════════════════
+   BOTS
+════════════════════════════════════════ */
+function renderBots(bots) {
+  const el = document.getElementById('botList');
+  document.getElementById('botsCount').textContent = `${bots.length} conectado(s)`;
+  if (!bots.length) { el.innerHTML = '<div class="empty">Nenhum bot conectado</div>'; return; }
+  el.innerHTML = bots.map(b => `
+    <div class="bot-item">
+      <span class="bot-id">#${b.id}</span>
+      <span class="bot-meta">IP: ${b.ip} · msgs: ${b.msgCount}</span>
+      <span class="bot-msgs">${timeSince(b.connectedAt)} atrás</span>
+      <button class="btn btn-r btn-xs" onclick="kickBot('${b.id}')">Kick</button>
+    </div>
+  `).join('');
+}
+
+/* ════════════════════════════════════════
+   LOG
+════════════════════════════════════════ */
+function addLog(entry, prepend = true) {
+  const box = document.getElementById('logBox');
+  const empty = box.querySelector('.empty');
+  if (empty) empty.remove();
+
+  const el = document.createElement('div');
+  el.className = `log-entry ${entry.type || 'server'}`;
+  const t = new Date(entry.time).toLocaleTimeString('pt-BR');
+  el.innerHTML = `
+    <span class="log-time">${t}</span>
+    <span class="log-type">${entry.type || '?'}</span>
+    <span class="log-msg">${esc(entry.msg)}</span>
+  `;
+
+  if (prepend) box.insertBefore(el, box.firstChild);
+  else box.appendChild(el);
+
+  const all = box.querySelectorAll('.log-entry');
+  if (all.length > 150) all[all.length - 1].remove();
+}
+
+function clearLog() {
+  document.getElementById('logBox').innerHTML = '<div class="empty">Log limpo</div>';
+}
+
+/* ════════════════════════════════════════
+   BRAINROTS
+════════════════════════════════════════ */
+function addBrainrot(br) {
+  _brainrots.unshift(br);
+  if (_brainrots.length > 100) _brainrots.pop();
+  renderBrainrots();
+}
+
+function renderBrainrots() {
+  const el = document.getElementById('brList');
+  document.getElementById('brCnt').textContent = `${_brainrots.length} itens`;
+  if (!_brainrots.length) { el.innerHTML = '<div class="empty">Nenhum brainrot ainda</div>'; return; }
+  el.innerHTML = _brainrots.slice(0, 60).map(b => {
+    const t = new Date(b.receivedAt).toLocaleTimeString('pt-BR');
+    const d = typeof b.data === 'object' ? JSON.stringify(b.data) : String(b.data);
+    return `
+      <div class="br-item">
+        <div class="br-meta">
+          <span>${t}</span>
+          <span>Bot: <strong style="color:var(--on)">${b.botId}</strong></span>
+          <span>${b.botIp}</span>
+        </div>
+        <div class="br-data">${esc(d.slice(0, 140))}${d.length > 140 ? '…' : ''}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+/* ════════════════════════════════════════
+   API CALLS
+════════════════════════════════════════ */
+const tok = () => document.getElementById('tok').value.trim();
+
+async function api(method, path, body) {
+  try {
+    const r = await fetch(path, {
+      method,
+      headers: { 'Content-Type': 'application/json', 'x-admin-token': tok() },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || `HTTP ${r.status}`);
+    return d;
+  } catch (e) {
+    toast(e.message, 'err');
+    throw e;
+  }
+}
+
+async function authCheck() {
+  try { await api('GET', '/api/stats'); toast('Token válido ✓', 'ok'); } catch {}
+}
+
+async function toggleWss(el) {
+  try {
+    const ep = el.checked ? '/api/wss/enable' : '/api/wss/disable';
+    await api('POST', ep);
+    toast(el.checked ? 'WSS habilitada' : 'WSS desabilitada', el.checked ? 'ok' : 'inf');
+  } catch { el.checked = !el.checked; }
+}
+
+async function toggleMaint(el) {
+  try {
+    const ep = el.checked ? '/api/maintenance/on' : '/api/maintenance/off';
+    await api('POST', ep);
+    toast(el.checked ? 'Manutenção ativada' : 'Manutenção desativada', 'inf');
+  } catch { el.checked = !el.checked; }
+}
+
+async function toggleBackup(el) {
+  try {
+    const ep = el.checked ? '/api/backup/auto/on' : '/api/backup/auto/off';
+    await api('POST', ep);
+    toast(el.checked ? 'Auto-backup ativado' : 'Auto-backup desativado', 'inf');
+  } catch { el.checked = !el.checked; }
+}
+
+async function backupNow() {
+  try { await api('POST', '/api/backup/now'); toast('Backup realizado!', 'ok'); } catch {}
+}
+
+async function kickBot(id) {
+  try { await api('POST', `/api/bots/kick/${id}`); toast(`Bot ${id} kickado`, 'wrn'); } catch {}
+}
+
+async function regenKey() {
+  try { await api('POST', '/api/security/regen-key'); _keyShown = false; document.getElementById('encKey').textContent = '••••••••••••••••'; toast('Chave regenerada!', 'ok'); } catch {}
+}
+
+async function revealKey() {
+  if (_keyShown) { document.getElementById('encKey').textContent = '••••••••••••••••'; _keyShown = false; return; }
+  try { const r = await api('GET', '/api/security/key'); document.getElementById('encKey').textContent = r.key; _keyShown = true; } catch {}
+}
+
+async function revealTok() {
+  if (_tokShown) { document.getElementById('adminTokD').textContent = '••••••••'; _tokShown = false; return; }
+  try { const r = await api('GET', '/api/security/token'); document.getElementById('adminTokD').textContent = r.token; _tokShown = true; } catch {}
+}
+
+/* ════════════════════════════════════════
+   MODAL
+════════════════════════════════════════ */
+const actions = {
+  kick:  { title: 'Kick All Bots', desc: 'Todos os bots serão desconectados imediatamente.' },
+  clear: { title: 'Clear All Brainrots', desc: 'TODOS os brainrots serão deletados permanentemente. Irreversível!' },
+};
+
+function confirm_(action) {
+  _pending = action;
+  document.getElementById('mTitle').textContent = actions[action].title;
+  document.getElementById('mDesc').textContent  = actions[action].desc;
+  document.getElementById('overlay').classList.add('open');
+}
+function closeModal() {
+  document.getElementById('overlay').classList.remove('open');
+  _pending = null;
+}
+async function execAction() {
+  closeModal();
+  if (!_pending) return;
+  try {
+    if (_pending === 'kick') {
+      const r = await api('POST', '/api/bots/kick-all');
+      toast(`${r.kicked} bots desconectados`, 'wrn');
+    } else if (_pending === 'clear') {
+      const r = await api('DELETE', '/api/brainrots');
+      toast(`${r.deleted} brainrots deletados`, 'wrn');
+    }
+  } catch {}
+}
+document.getElementById('overlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+
+/* ════════════════════════════════════════
+   CODE TABS
+════════════════════════════════════════ */
+document.querySelectorAll('.tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tp-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+function copyTab(id) {
+  const pre = document.getElementById('tp-' + id).querySelector('pre');
+  navigator.clipboard.writeText(pre.innerText).then(() => toast('Copiado!', 'ok'));
+}
+
+/* ════════════════════════════════════════
+   TOAST
+════════════════════════════════════════ */
+function toast(msg, type = 'inf') {
+  const c = document.getElementById('toasts');
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.textContent = msg;
+  c.appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+
+/* ════════════════════════════════════════
+   UTILS
+════════════════════════════════════════ */
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function setText(id, v) { const el = document.getElementById(id); if (el) el.textContent = v; }
+function setChk(id, v)  { const el = document.getElementById(id); if (el) el.checked = !!v; }
+function fmt(n) { return Number(n||0).toLocaleString('pt-BR'); }
+function timeSince(iso) {
+  const s = Math.floor((Date.now() - new Date(iso)) / 1000);
+  if (s < 60) return `${s}s`;
+  if (s < 3600) return `${Math.floor(s/60)}m`;
+  return `${Math.floor(s/3600)}h`;
+}
+
+/* Polling fallback */
+setInterval(async () => {
+  if (!_ws || _ws.readyState !== WebSocket.OPEN) {
+    try { const s = await (await fetch('/api/stats', { headers: { 'x-admin-token': tok() } })).json(); applyStats(s); } catch {}
+  }
+}, 7000);
+
+/* ════════════════════════════════════════
+   INIT
+════════════════════════════════════════ */
+connect();
+</script>
+</body>
+</html>
