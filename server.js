@@ -7,11 +7,12 @@ const app = express();
 const server = http.createServer(app);
 const PORT = process.env.PORT || 3000;
 
-// CONFIGURAÇÃO CORS CORRIGIDA
+// CORS para permitir qualquer origem
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, x-admin-token');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, x-admin-token, Authorization');
+    res.header('Access-Control-Allow-Credentials', 'true');
     if (req.method === 'OPTIONS') {
         return res.sendStatus(200);
     }
@@ -21,23 +22,25 @@ app.use((req, res, next) => {
 app.use(express.json());
 app.use(express.static(path.join(__dirname)));
 
-// WebSocket server para bots (rota /on)
+// Configuração do WebSocket com keep-alive e heartbeat
 const wssBots = new WebSocket.Server({ 
     noServer: true,
-    // Configuração importante para aceitar conexões
-    handleProtocols: () => true
+    clientTracking: true
 });
 
-// WebSocket server para o painel (rota /ws)
 const wssPanel = new WebSocket.Server({ noServer: true });
 
-// Armazenamento
 let brainrots = [];
 let botsOnline = new Map();
 let startTime = Date.now();
 const ADMIN_TOKEN = 'admin123';
 
-// Funções de broadcast
+// Heartbeat para manter conexões vivas
+function heartbeat() {
+    this.isAlive = true;
+}
+
+// Broadcast stats
 function broadcastStats() {
     const stats = {
         type: 'stats',
@@ -99,23 +102,23 @@ app.get('/api/status', (req, res) => {
         status: 'online',
         service: 'WSS Brainrot Collector',
         version: '1.0.0',
-        websocket: 'wss://' + req.get('host') + '/on'
+        websocket: `wss://${req.get('host')}/on`,
+        connections: botsOnline.size
     });
+});
+
+app.get('/health', (req, res) => {
+    res.status(200).send('OK');
 });
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Health check para Render
-app.get('/health', (req, res) => {
-    res.status(200).send('OK');
-});
-
 // Keep-alive
 setInterval(() => {
-    console.log('🔥 Keep-alive ping - Servidor ativo');
-    fetch('https://' + process.env.RENDER_EXTERNAL_HOSTNAME + '/health').catch(() => {});
+    console.log('🔥 Keep-alive - Servidor ativo');
+    fetch(`https://${process.env.RENDER_EXTERNAL_HOSTNAME || 'localhost'}/health`).catch(() => {});
     broadcastStats();
 }, 240000);
 
@@ -123,10 +126,10 @@ setInterval(() => {
     broadcastStats();
 }, 5000);
 
-// WebSocket upgrade handler CORRIGIDO
+// WebSocket upgrade handler
 server.on('upgrade', (request, socket, head) => {
     const url = request.url;
-    console.log(`📡 Upgrade request para: ${url}`);
+    console.log(`📡 Requisição upgrade para: ${url}`);
     
     if (url === '/on') {
         wssBots.handleUpgrade(request, socket, head, (ws) => {
@@ -137,56 +140,67 @@ server.on('upgrade', (request, socket, head) => {
             wssPanel.emit('connection', ws, request);
         });
     } else {
-        console.log(`❌ Rota desconhecida: ${url}`);
+        console.log(`❌ Rota não encontrada: ${url}`);
         socket.destroy();
     }
 });
 
-// Conexões dos bots CORRIGIDAS
+// Conexão dos bots - VERSÃO CORRIGIDA
 wssBots.on('connection', (ws, req) => {
     const botId = `bot_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
-    console.log(`🤖 Bot conectado: ${botId}`);
-    console.log(`📡 IP: ${req.socket.remoteAddress}`);
+    console.log(`✅ Bot conectado: ${botId}`);
+    console.log(`📍 IP: ${req.socket.remoteAddress}`);
     
+    // Configurar heartbeat
+    ws.isAlive = true;
+    ws.on('pong', heartbeat);
+    
+    // Registrar bot
     botsOnline.set(botId, {
         id: botId,
         connectedAt: new Date().toISOString(),
-        messagesCount: 0
+        messagesCount: 0,
+        ip: req.socket.remoteAddress
     });
+    
+    // Enviar confirmação de conexão
+    try {
+        ws.send(JSON.stringify({
+            type: 'connection',
+            status: 'connected',
+            botId: botId,
+            message: '✅ Conectado ao servidor WSS com sucesso!',
+            timestamp: new Date().toISOString()
+        }));
+    } catch (err) {
+        console.error('Erro ao enviar confirmação:', err);
+    }
     
     broadcastStats();
     
-    // Envia confirmação
-    ws.send(JSON.stringify({
-        type: 'connection',
-        status: 'connected',
-        botId: botId,
-        message: 'Conectado ao servidor WSS com sucesso!',
-        timestamp: new Date().toISOString()
-    }));
-    
-    // Recebe mensagens
+    // Receber mensagens
     ws.on('message', (data) => {
         try {
-            // Tenta fazer parse do JSON
+            console.log(`📨 Mensagem recebida de ${botId}: ${data.toString().substring(0, 200)}`);
+            
             let message;
             try {
                 message = JSON.parse(data.toString());
             } catch (e) {
-                // Se não for JSON, trata como texto
                 message = { raw: data.toString(), type: 'text' };
             }
             
-            console.log(`📨 Mensagem do bot ${botId}:`, message);
-            
+            // Atualizar estatísticas do bot
             const botInfo = botsOnline.get(botId);
             if (botInfo) {
                 botInfo.messagesCount++;
                 botInfo.lastMessage = new Date().toISOString();
+                botInfo.lastData = message;
                 botsOnline.set(botId, botInfo);
             }
             
+            // Salvar brainrot
             const brainrot = {
                 id: brainrots.length + 1,
                 botId: botId,
@@ -201,38 +215,49 @@ wssBots.on('connection', (ws, req) => {
                 brainrots = brainrots.slice(-1000);
             }
             
-            // Confirmação para o bot
-            ws.send(JSON.stringify({
-                type: 'ack',
-                status: 'received',
-                id: brainrot.id,
-                timestamp: brainrot.timestamp,
-                message: 'Dados recebidos com sucesso!'
-            }));
+            // Enviar ACK para o bot
+            try {
+                ws.send(JSON.stringify({
+                    type: 'ack',
+                    status: 'received',
+                    id: brainrot.id,
+                    timestamp: brainrot.timestamp,
+                    message: '✅ Dados recebidos com sucesso!'
+                }));
+            } catch (err) {
+                console.error('Erro ao enviar ACK:', err);
+            }
             
+            // Atualizar painel
             broadcastBrainrots();
             broadcastStats();
             
         } catch (error) {
-            console.error(`❌ Erro ao processar:`, error);
-            ws.send(JSON.stringify({
-                type: 'error',
-                status: 'error',
-                message: 'Erro ao processar mensagem: ' + error.message
-            }));
+            console.error(`❌ Erro ao processar mensagem:`, error);
+            try {
+                ws.send(JSON.stringify({
+                    type: 'error',
+                    status: 'error',
+                    message: 'Erro: ' + error.message
+                }));
+            } catch (err) {}
         }
     });
     
-    ws.on('close', () => {
-        console.log(`🔌 Bot desconectado: ${botId}`);
+    // Tratar desconexão
+    ws.on('close', (code, reason) => {
+        console.log(`🔌 Bot desconectado: ${botId} (Código: ${code})`);
         botsOnline.delete(botId);
         broadcastStats();
     });
     
+    // Tratar erros
     ws.on('error', (error) => {
-        console.error(`❌ Erro no bot ${botId}:`, error.message);
-        botsOnline.delete(botId);
-        broadcastStats();
+        console.error(`❌ Erro WebSocket para ${botId}:`, error.message);
+        if (botsOnline.has(botId)) {
+            botsOnline.delete(botId);
+            broadcastStats();
+        }
     });
 });
 
@@ -240,6 +265,7 @@ wssBots.on('connection', (ws, req) => {
 wssPanel.on('connection', (ws) => {
     console.log('📊 Painel conectado');
     
+    // Enviar dados iniciais
     ws.send(JSON.stringify({
         type: 'connected',
         message: 'Conectado ao painel WSS'
@@ -264,10 +290,27 @@ wssPanel.on('connection', (ws) => {
     });
 });
 
+// Ping interval para manter conexões vivas
+const interval = setInterval(() => {
+    wssBots.clients.forEach((ws) => {
+        if (ws.isAlive === false) {
+            console.log('💀 Terminando conexão inativa');
+            return ws.terminate();
+        }
+        ws.isAlive = false;
+        ws.ping();
+    });
+}, 30000);
+
+wssBots.on('close', () => {
+    clearInterval(interval);
+});
+
+// Iniciar servidor
 server.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 Servidor rodando em http://0.0.0.0:${PORT}`);
-    console.log(`🔗 WebSocket para bots: wss://ws-lnz-online.onrender.com/on`);
-    console.log(`📊 Painel WebSocket: wss://ws-lnz-online.onrender.com/ws`);
+    console.log(`🔗 WebSocket para bots: wss://ws-linz-online.onrender.com/on`);
+    console.log(`📊 Painel WebSocket: wss://ws-linz-online.onrender.com/ws`);
     console.log(`🔐 Token Admin: ${ADMIN_TOKEN}`);
-    console.log(`💚 Keep-alive ativado`);
+    console.log(`💚 Keep-alive ativado (ping a cada 4 minutos)`);
 });
