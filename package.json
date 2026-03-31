@@ -1,26 +1,28 @@
 {
   "name": "wss-brainrot-server",
   "version": "1.0.0",
-  "description": "Servidor WebSocket para receber dados de qualquer formato 24/7",
+  "description": "Servidor WebSocket que aceita qualquer formato de dados com painel de controle",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "nodemon server.js"
   },
   "keywords": [
     "websocket",
     "wss",
-    "express",
-    "realtime"
+    "railway",
+    "brainrot"
   ],
   "author": "",
   "license": "MIT",
-  "engines": {
-    "node": ">=18.0.0"
-  },
   "dependencies": {
     "express": "^4.18.2",
     "ws": "^8.14.2"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
 }
