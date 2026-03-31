@@ -1,928 +1,638 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🧠 Brainrot WSS - Painel de Controle</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>LuaLoader Pro - Sistema HWID + Keys + Créditos</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: 'Inter', 'Segoe UI', 'Poppins', system-ui, -apple-system, sans-serif;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #0f0f1e 0%, #1a0a2e 100%);
-            color: #e0e0e0;
+            background: radial-gradient(circle at 10% 20%, #0b1120, #050a15);
             min-height: 100vh;
-            padding: 20px;
+            padding: 24px;
         }
 
-        .container {
+        /* Container premium */
+        .glass-container {
             max-width: 1400px;
             margin: 0 auto;
-        }
-
-        /* ===== LOGIN ===== */
-        .login-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, #0f0f1e 0%, #1a0a2e 100%);
-            z-index: 1000;
-        }
-
-        .login-box {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 20px;
-            padding: 40px;
-            width: 100%;
-            max-width: 400px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        }
-
-        .login-box h1 {
-            text-align: center;
-            margin-bottom: 10px;
-            font-size: 28px;
-            background: linear-gradient(135deg, #00d4ff, #0099ff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .login-box p {
-            text-align: center;
-            color: #aaa;
-            margin-bottom: 30px;
-            font-size: 14px;
-        }
-
-        .login-group {
-            margin-bottom: 20px;
-        }
-
-        .login-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-        }
-
-        .login-group input {
-            width: 100%;
-            padding: 12px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            color: #e0e0e0;
-            font-size: 16px;
+            background: rgba(18, 25, 45, 0.65);
+            backdrop-filter: blur(16px);
+            border-radius: 2rem;
+            border: 1px solid rgba(66, 153, 225, 0.25);
+            box-shadow: 0 25px 45px -12px rgba(0,0,0,0.5);
+            overflow: hidden;
             transition: all 0.3s;
         }
 
-        .login-group input:focus {
-            outline: none;
-            border-color: #00d4ff;
-            box-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
-        }
-
-        .login-btn {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg, #00d4ff, #0099ff);
-            border: none;
-            border-radius: 10px;
-            color: #fff;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .login-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0, 212, 255, 0.4);
-        }
-
-        .login-hidden {
-            display: none !important;
-        }
-
-        /* ===== HEADER ===== */
-        .header {
+        /* Header com gradiente */
+        .premium-header {
+            background: linear-gradient(135deg, #0f172a 0%, #111827 100%);
+            padding: 1rem 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            flex-wrap: wrap;
+            gap: 1rem;
+            border-bottom: 1px solid rgba(59,130,246,0.4);
         }
 
-        .header h1 {
-            font-size: 28px;
-            background: linear-gradient(135deg, #00d4ff, #0099ff);
+        .logo-area h1 {
+            font-size: 1.5rem;
+            background: linear-gradient(120deg, #60a5fa, #a855f7);
             -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
             background-clip: text;
+            color: transparent;
+            font-weight: 700;
+        }
+        .logo-area p {
+            font-size: 0.7rem;
+            color: #8ca3c7;
         }
 
-        .header-right {
+        .user-stats {
             display: flex;
-            gap: 15px;
+            gap: 1.5rem;
             align-items: center;
+            background: #0f1422cc;
+            padding: 0.5rem 1.2rem;
+            border-radius: 3rem;
+            backdrop-filter: blur(4px);
         }
 
-        .status-indicator {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 15px;
-            background: rgba(0, 212, 255, 0.1);
-            border-radius: 10px;
-            border: 1px solid rgba(0, 212, 255, 0.3);
+        .user-email-badge {
+            background: #1e293b;
+            padding: 0.3rem 1rem;
+            border-radius: 2rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #cbd5e6;
         }
 
-        .status-dot {
-            width: 10px;
-            height: 10px;
-            background: #00d4ff;
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+        .credits-badge {
+            background: linear-gradient(135deg, #f59e0b20, #f59e0b10);
+            padding: 0.3rem 1rem;
+            border-radius: 2rem;
+            font-weight: bold;
+            color: #fbbf24;
+            border: 1px solid #f59e0b40;
         }
 
         .logout-btn {
-            padding: 8px 15px;
-            background: rgba(255, 59, 48, 0.2);
-            border: 1px solid rgba(255, 59, 48, 0.5);
-            border-radius: 8px;
-            color: #ff3b30;
+            background: #ef444420;
+            border: 1px solid #ef444460;
+            padding: 0.4rem 1rem;
+            border-radius: 2rem;
+            color: #fca5a5;
             cursor: pointer;
+            transition: 0.2s;
             font-weight: 500;
-            transition: all 0.3s;
         }
+        .logout-btn:hover { background: #ef4444; color: white; border-color: #ef4444; }
 
-        .logout-btn:hover {
-            background: rgba(255, 59, 48, 0.3);
-            box-shadow: 0 4px 12px rgba(255, 59, 48, 0.2);
-        }
-
-        /* ===== STATS CARDS ===== */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .stat-card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            padding: 25px;
-            transition: all 0.3s;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-            border-color: rgba(0, 212, 255, 0.3);
-            box-shadow: 0 8px 25px rgba(0, 212, 255, 0.1);
-        }
-
-        .stat-label {
-            color: #aaa;
-            font-size: 14px;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .stat-value {
-            font-size: 32px;
-            font-weight: bold;
-            color: #00d4ff;
-            margin-bottom: 5px;
-        }
-
-        .stat-detail {
-            font-size: 12px;
-            color: #888;
-        }
-
-        /* ===== CONTROLES ===== */
-        .controls {
+        /* Navegação tabs */
+        .nav-tabs {
             display: flex;
-            gap: 15px;
-            margin-bottom: 30px;
+            gap: 0.5rem;
+            padding: 1rem 2rem 0 2rem;
             flex-wrap: wrap;
+            border-bottom: 1px solid #1f2a44;
         }
-
-        .btn {
-            padding: 12px 20px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            color: #e0e0e0;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.3s;
-        }
-
-        .btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: rgba(0, 212, 255, 0.3);
-        }
-
-        .btn-danger {
-            background: rgba(255, 59, 48, 0.1);
-            border-color: rgba(255, 59, 48, 0.3);
-            color: #ff3b30;
-        }
-
-        .btn-danger:hover {
-            background: rgba(255, 59, 48, 0.2);
-            box-shadow: 0 4px 12px rgba(255, 59, 48, 0.2);
-        }
-
-        /* ===== BRAINROTS LIST ===== */
-        .brainrots-container {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 30px;
-        }
-
-        .brainrots-container h2 {
-            margin-bottom: 20px;
-            color: #00d4ff;
-            font-size: 20px;
-        }
-
-        .brainrot-item {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 12px;
-            animation: slideIn 0.3s ease;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateX(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        .brainrot-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .brainrot-type {
-            display: inline-block;
-            padding: 4px 10px;
-            background: rgba(0, 212, 255, 0.2);
-            border-radius: 5px;
-            font-size: 11px;
-            font-weight: bold;
-            color: #00d4ff;
-        }
-
-        .brainrot-type.json { background: rgba(76, 175, 80, 0.2); color: #4caf50; }
-        .brainrot-type.text { background: rgba(33, 150, 243, 0.2); color: #2196f3; }
-        .brainrot-type.number { background: rgba(255, 152, 0, 0.2); color: #ff9800; }
-        .brainrot-type.xml { background: rgba(156, 39, 176, 0.2); color: #9c27b0; }
-
-        .brainrot-time {
-            font-size: 12px;
-            color: #888;
-        }
-
-        .brainrot-bot {
-            font-size: 12px;
-            color: #aaa;
-            margin-bottom: 8px;
-        }
-
-        .brainrot-data {
-            font-family: 'Courier New', monospace;
-            font-size: 13px;
-            color: #ccc;
-            background: rgba(0, 0, 0, 0.3);
-            padding: 10px;
-            border-radius: 8px;
-            word-break: break-all;
-            max-height: 100px;
-            overflow-y: auto;
-        }
-
-        .brainrot-empty {
-            text-align: center;
-            color: #888;
-            padding: 40px 20px;
-            font-size: 14px;
-        }
-
-        /* ===== EXEMPLOS ===== */
-        .examples-container {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 30px;
-        }
-
-        .examples-container h2 {
-            margin-bottom: 20px;
-            color: #00d4ff;
-        }
-
-        .example-tab {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-
-        .tab-btn {
-            padding: 10px 15px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            color: #aaa;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .tab-btn.active {
-            background: rgba(0, 212, 255, 0.2);
-            border-color: rgba(0, 212, 255, 0.5);
-            color: #00d4ff;
-        }
-
-        .example-code {
-            background: rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            padding: 15px;
-            font-family: 'Courier New', monospace;
-            font-size: 13px;
-            color: #00ff00;
-            overflow-x: auto;
-            display: none;
-        }
-
-        .example-code.active {
-            display: block;
-        }
-
-        .copy-btn {
-            padding: 8px 12px;
-            background: rgba(0, 212, 255, 0.2);
-            border: 1px solid rgba(0, 212, 255, 0.4);
-            border-radius: 6px;
-            color: #00d4ff;
-            cursor: pointer;
-            font-size: 12px;
-            transition: all 0.3s;
-        }
-
-        .copy-btn:hover {
-            background: rgba(0, 212, 255, 0.3);
-        }
-
-        .wss-endpoint {
-            background: rgba(76, 175, 80, 0.1);
-            border: 2px solid rgba(76, 175, 80, 0.3);
-            border-radius: 10px;
-            padding: 15px;
-            margin: 20px 0;
-            color: #4caf50;
-            font-family: monospace;
-            word-break: break-all;
-        }
-
-        /* ===== RESPONSIVO ===== */
-        @media (max-width: 768px) {
-            .header {
-                flex-direction: column;
-                gap: 15px;
-                text-align: center;
-            }
-
-            .header-right {
-                width: 100%;
-                justify-content: center;
-            }
-
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .controls {
-                flex-direction: column;
-            }
-
-            .btn {
-                width: 100%;
-            }
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 999;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal.show {
-            display: flex;
-        }
-
-        .modal-content {
-            background: rgba(15, 15, 30, 0.95);
-            border: 1px solid rgba(0, 212, 255, 0.3);
-            border-radius: 15px;
-            padding: 30px;
-            max-width: 400px;
-            width: 90%;
-            text-align: center;
-        }
-
-        .modal-content h3 {
-            margin-bottom: 20px;
-            color: #ff9800;
-        }
-
-        .modal-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .modal-btn {
-            flex: 1;
-            padding: 10px;
+        .tab {
+            background: transparent;
             border: none;
-            border-radius: 8px;
+            padding: 0.6rem 1.4rem;
+            border-radius: 2rem 2rem 0 0;
+            font-weight: 600;
+            color: #94a3b8;
             cursor: pointer;
-            font-weight: bold;
+            transition: 0.2s;
+            font-size: 0.9rem;
+        }
+        .tab.active {
+            background: #1e2a47;
+            color: #60a5fa;
+            border-bottom: 2px solid #3b82f6;
+            box-shadow: 0 -2px 8px rgba(59,130,246,0.2);
         }
 
-        .modal-confirm {
-            background: #ff3b30;
+        /* Painéis */
+        .panel {
+            display: none;
+            padding: 1.8rem 2rem;
+            animation: fadeSlide 0.25s ease;
+        }
+        .panel.active-panel { display: block; }
+        @keyframes fadeSlide {
+            from { opacity: 0; transform: translateY(6px);}
+            to { opacity: 1; transform: translateY(0);}
+        }
+
+        /* Cards modernos */
+        .card {
+            background: #0f1422cc;
+            backdrop-filter: blur(8px);
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid #28324e;
+            transition: transform 0.1s;
+        }
+        .card h3 {
+            color: #e2e8f0;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .card h3 i { font-size: 1.3rem; }
+
+        input, textarea, select {
+            background: #0b0f1c;
+            border: 1px solid #2d374b;
+            padding: 12px 16px;
+            border-radius: 1rem;
+            color: #f1f5f9;
+            width: 100%;
+            margin-bottom: 12px;
+            font-size: 0.9rem;
+            transition: 0.2s;
+        }
+        input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px #3b82f620;
+        }
+
+        button {
+            background: linear-gradient(95deg, #2563eb, #3b82f6);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 2rem;
+            font-weight: 600;
             color: white;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-right: 8px;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        button:hover { transform: translateY(-1px); filter: brightness(1.05);}
+        button.danger { background: linear-gradient(95deg, #dc2626, #ef4444);}
+        button.warning { background: linear-gradient(95deg, #ea580c, #f97316);}
+        button.secondary { background: #334155; }
+
+        .code-block {
+            background: #03050b;
+            border: 1px solid #2a3456;
+            padding: 1rem;
+            border-radius: 1rem;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.75rem;
+            overflow-x: auto;
+            color: #b9c7dd;
+            margin-top: 10px;
         }
 
-        .modal-cancel {
-            background: rgba(255, 255, 255, 0.1);
-            color: #e0e0e0;
+        table {
+            width: 100%;
+            border-collapse: collapse;
         }
+        th, td {
+            text-align: left;
+            padding: 12px 8px;
+            border-bottom: 1px solid #252e46;
+            color: #cbd5e1;
+        }
+        th { color: #90a4dd; font-weight: 600;}
+
+        .badge-key {
+            background: #2d3748;
+            padding: 0.2rem 0.6rem;
+            border-radius: 1rem;
+            font-size: 0.7rem;
+            font-family: monospace;
+        }
+        .icon-btn {
+            background: none;
+            box-shadow: none;
+            padding: 4px 10px;
+            margin: 0;
+            font-size: 0.8rem;
+        }
+        .flex-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        hr { border-color: #253153; margin: 1rem 0; }
     </style>
 </head>
 <body>
-    <!-- LOGIN -->
-    <div id="loginContainer" class="login-container">
-        <div class="login-box">
-            <h1>🧠 Brainrot WSS</h1>
-            <p>Painel de Controle</p>
-            <div class="login-group">
-                <label for="tokenInput">Token de Acesso</label>
-                <input type="password" id="tokenInput" placeholder="admin123" />
-            </div>
-            <button class="login-btn" onclick="login()">Entrar</button>
+<div class="glass-container" id="app">
+    <!-- Header fixo após login (não tem mais tela de login separada, direto com conta demo + admin) -->
+    <div class="premium-header">
+        <div class="logo-area">
+            <h1>⚡ LuaLoader Pro</h1>
+            <p>HWID · Key System · Créditos</p>
+        </div>
+        <div class="user-stats">
+            <span class="user-email-badge" id="userEmailDisplay">carregando...</span>
+            <span class="credits-badge" id="userCreditsDisplay">💰 0 créditos</span>
+            <button class="logout-btn" id="logoutGlobalBtn">🚪 Sair</button>
         </div>
     </div>
 
-    <!-- DASHBOARD -->
-    <div class="container login-hidden">
-        <!-- HEADER -->
-        <div class="header">
-            <h1>🧠 Brainrot WSS - Painel de Controle</h1>
-            <div class="header-right">
-                <div class="status-indicator">
-                    <div class="status-dot"></div>
-                    <span id="wssStatus">Conectando...</span>
-                </div>
-                <button class="logout-btn" onclick="logout()">Sair</button>
+    <!-- Tabs -->
+    <div class="nav-tabs">
+        <button class="tab active" data-tab="loader">📦 LOADER / RAW</button>
+        <button class="tab" data-tab="keys">🔑 MINHAS KEYS</button>
+        <button class="tab" data-tab="hwid">🖥️ HWID · VINCULAR</button>
+        <button class="tab" data-tab="admin" id="adminTabNav" style="display: none;">👑 ADMIN (Usuários)</button>
+        <button class="tab" data-tab="blacklist">🚫 BLACKLIST HWID</button>
+    </div>
+
+    <!-- PAINEL LOADER -->
+    <div class="panel active-panel" id="panel-loader">
+        <div class="card">
+            <h3>📡 Executar Script (Loader API)</h3>
+            <p style="color:#9aa9c1; margin-bottom: 12px;">Raw base: <code style="background:#00000066; padding:2px 8px;">https://api.lualoader.net/v1/loaders/[ID].lua</code></p>
+            <input type="text" id="rawIdInput" placeholder="ID do raw (ex: script_legitimo)" value="meu_loader_pro">
+            <div class="flex-row">
+                <button id="executarScriptBtn">▶️ EXECUTAR SCRIPT</button>
+                <button id="pausarScriptBtn" class="warning">⏸️ PAUSAR</button>
+                <button id="copiarScriptBtn" class="secondary">📋 COPIAR LOADER</button>
+                <button id="mostrarCodigoBtn" class="secondary">👁️ MOSTRAR RAW</button>
             </div>
+            <div id="loaderOutput" class="code-block">⚡ Clique em executar para rodar o loader com verificação HWID + Keys...</div>
         </div>
-
-        <!-- STATS -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-label">📈 Uptime</div>
-                <div class="stat-value" id="uptime">0s</div>
-                <div class="stat-detail">Server online</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">🧠 Total de Brainrots</div>
-                <div class="stat-value" id="totalBrainrots">0</div>
-                <div class="stat-detail">Dados recebidos</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">🤖 Bots Online</div>
-                <div class="stat-value" id="botsOnline">0</div>
-                <div class="stat-detail">Conexões ativas</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">🔌 WSS Endpoint</div>
-                <div class="stat-value" id="wssEndpoint" style="font-size: 14px; overflow-x: auto;">-</div>
-                <div class="stat-detail">Status: <span id="wssStatusDetail">offline</span></div>
-            </div>
-        </div>
-
-        <!-- CONTROLES -->
-        <div class="controls">
-            <button class="btn" onclick="refreshData()">🔄 Atualizar</button>
-            <button class="btn btn-danger" onclick="confirmClear()">🗑️ Limpar Todos</button>
-        </div>
-
-        <!-- BRAINROTS -->
-        <div class="brainrots-container">
-            <h2>📡 Brainrots Recebidos (Últimos 50)</h2>
-            <div id="brainrotsList" class="brainrot-empty">Aguardando dados...</div>
-        </div>
-
-        <!-- EXEMPLOS -->
-        <div class="examples-container">
-            <h2>💻 Exemplos de Uso</h2>
-            
-            <div class="wss-endpoint" id="wssEndpointDisplay">
-                Endpoint WSS: <strong>ws://localhost:3000/ws</strong> (local)
-            </div>
-
-            <div class="example-tab">
-                <button class="tab-btn active" onclick="switchExample('python')">🐍 Python</button>
-                <button class="tab-btn" onclick="switchExample('nodejs')">🟢 Node.js</button>
-                <button class="tab-btn" onclick="switchExample('javascript')">🟡 JavaScript</button>
-                <button class="tab-btn" onclick="switchExample('curl')">📌 cURL/wscat</button>
-            </div>
-
-            <div id="python" class="example-code active">
-<pre>import asyncio
-import websockets
-import json
-
-async def send_data():
-    uri = "ws://localhost:3000/ws"  # ou wss://seu-dominio.com/ws
-    
-    async with websockets.connect(uri) as websocket:
-        # Enviar JSON
-        await websocket.send(json.dumps({"tipo": "brainrot", "conteudo": "teste"}))
-        
-        # Enviar texto puro
-        await websocket.send("Texto simples")
-        
-        # Enviar número
-        await websocket.send("12345")
-        
-        # Enviar HTML
-        await websocket.send("&lt;h1&gt;Teste&lt;/h1&gt;")
-
-# Executar
-asyncio.run(send_data())
-</pre>
-                <button class="copy-btn" onclick="copyCode('python')">📋 Copiar</button>
-            </div>
-
-            <div id="nodejs" class="example-code">
-<pre>const WebSocket = require('ws');
-
-const ws = new WebSocket('ws://localhost:3000/ws');
-// ou wss://seu-dominio.com/ws
-
-ws.on('open', () => {
-    // Enviar JSON
-    ws.send(JSON.stringify({tipo: "brainrot", conteudo: "teste"}));
-    
-    // Enviar texto
-    ws.send("Texto simples");
-    
-    // Enviar número
-    ws.send("12345");
-    
-    // Enviar HTML
-    ws.send("&lt;h1&gt;Teste&lt;/h1&gt;");
-});
-
-ws.on('message', (msg) => {
-    console.log('Recebido:', msg);
-});
-
-ws.on('close', () => {
-    console.log('Desconectado');
-});
-</pre>
-                <button class="copy-btn" onclick="copyCode('nodejs')">📋 Copiar</button>
-            </div>
-
-            <div id="javascript" class="example-code">
-<pre>const ws = new WebSocket('ws://localhost:3000/ws');
-// ou wss://seu-dominio.com/ws
-
-ws.onopen = () => {
-    // Enviar JSON
-    ws.send(JSON.stringify({tipo: "brainrot", conteudo: "teste"}));
-    
-    // Enviar texto
-    ws.send("Texto simples");
-    
-    // Enviar número
-    ws.send("12345");
-    
-    // Enviar HTML
-    ws.send("&lt;h1&gt;Teste&lt;/h1&gt;");
-};
-
-ws.onmessage = (event) => {
-    console.log('Recebido:', event.data);
-};
-
-ws.onclose = () => {
-    console.log('Desconectado');
-};
-</pre>
-                <button class="copy-btn" onclick="copyCode('javascript')">📋 Copiar</button>
-            </div>
-
-            <div id="curl" class="example-code">
-<pre># Usando wscat (instale com: npm install -g wscat)
-
-# Conectar
-wscat -c ws://localhost:3000/ws
-
-# Ou usando wsd
-wsd ws://localhost:3000/ws
-
-# Exemplos de envio (após conectar):
-{"tipo": "brainrot", "conteudo": "teste"}
-Texto simples
-12345
-&lt;h1&gt;Teste&lt;/h1&gt;
-&lt;xml&gt;&lt;valor&gt;teste&lt;/valor&gt;&lt;/xml&gt;
-</pre>
-                <button class="copy-btn" onclick="copyCode('curl')">📋 Copiar</button>
-            </div>
+        <div class="card">
+            <h3>🔍 VISUALIZAÇÃO COMPLETA (Olho Mágico)</h3>
+            <button id="olhoDetalhesBtn">👁️ MOSTRAR TODOS OS DETALHES</button>
+            <div id="detalhesLoader" class="code-block">Clique para exibir informações do sistema, HWIDs vinculados, keys ativas, blacklist...</div>
         </div>
     </div>
 
-    <!-- MODAL -->
-    <div id="clearModal" class="modal">
-        <div class="modal-content">
-            <h3>⚠️ Limpar Todos os Brainrots?</h3>
-            <p>Esta ação não pode ser desfeita.</p>
-            <div class="modal-buttons">
-                <button class="modal-btn modal-confirm" onclick="clearBrainrots()">Confirmar</button>
-                <button class="modal-btn modal-cancel" onclick="cancelClear()">Cancelar</button>
-            </div>
+    <!-- PAINEL KEYS -->
+    <div class="panel" id="panel-keys">
+        <div class="card">
+            <h3>✨ GERAR NOVA KEY (10 créditos)</h3>
+            <input type="text" id="keyDescInput" placeholder="Descrição / nome da key">
+            <button id="gerarKeyBtn">🎫 GERAR KEY (10 CRÉDITOS)</button>
+            <div id="novaKeyResult" class="code-block"></div>
+        </div>
+        <div class="card">
+            <h3>📋 SUAS KEYS (com HWID vinculado)</h3>
+            <div id="keysTableContainer"></div>
         </div>
     </div>
 
-    <script>
-        let token = null;
-        let ws = null;
-        let loggedIn = false;
+    <!-- PAINEL HWID -->
+    <div class="panel" id="panel-hwid">
+        <div class="card">
+            <h3>🔗 VINCULAR HWID A UMA KEY</h3>
+            <input type="text" id="hwidKeySelecionada" placeholder="Chave da key (ex: KEY-XXXX)">
+            <input type="text" id="hwidMaquina" placeholder="HWID da máquina destino (ex: HWID-ABC123)">
+            <div class="flex-row">
+                <button id="vincularHwidBtn">✅ VINCULAR HWID</button>
+                <button id="resetHwidBtn" class="warning">🔄 RESET HWID (desvincula)</button>
+            </div>
+            <div id="hwidMsgArea" class="code-block" style="background:#0a0e18;"></div>
+        </div>
+        <div class="card">
+            <h3>⚙️ TESTE DE PERMISSÃO (execução condicional)</h3>
+            <input type="text" id="testHwidInput" placeholder="HWID para testar (simular)">
+            <button id="testarPermissaoBtn">🔍 VERIFICAR SE PODE EXECUTAR</button>
+            <div id="testePermissaoOutput" class="code-block"></div>
+        </div>
+    </div>
 
-        // ===== LOGIN =====
-        function login() {
-            const tokenInput = document.getElementById('tokenInput').value;
-            
-            if (!tokenInput.trim()) {
-                alert('Digite o token!');
-                return;
-            }
-            
-            token = tokenInput;
-            loggedIn = true;
-            
-            document.getElementById('loginContainer').classList.add('login-hidden');
-            document.querySelectorAll('.container')[0].classList.remove('login-hidden');
-            
-            connectWebSocket();
-            updateEndpoint();
-            document.getElementById('tokenInput').value = '';
-        }
+    <!-- PAINEL ADMIN -->
+    <div class="panel" id="panel-admin">
+        <div class="card">
+            <h3>👥 GERENCIAR USUÁRIOS (todos emails logados)</h3>
+            <button id="refreshUsersAdminBtn">🔄 ATUALIZAR LISTA</button>
+            <div id="usersAdminList"></div>
+            <hr>
+            <h3>➕ CRÉDITOS / ALTERAR SENHA</h3>
+            <input type="email" id="adminUserEmailInput" placeholder="Email do usuário">
+            <input type="number" id="adminCreditsValue" placeholder="Quantidade (+ ou -)">
+            <button id="addCreditsAdminBtn">💎 ADICIONAR/REMOVER CRÉDITOS</button>
+            <input type="password" id="adminNewPassword" placeholder="Nova senha (opcional)">
+            <button id="changePasswordAdminBtn">🔐 ALTERAR SENHA</button>
+        </div>
+    </div>
 
-        function logout() {
-            if (ws) ws.close();
-            loggedIn = false;
-            token = null;
-            document.getElementById('loginContainer').classList.remove('login-hidden');
-            document.querySelectorAll('.container')[0].classList.add('login-hidden');
-        }
+    <!-- PAINEL BLACKLIST -->
+    <div class="panel" id="panel-blacklist">
+        <div class="card">
+            <h3>⚠️ BANIR HWID (blacklist global)</h3>
+            <input type="text" id="banHwidInput" placeholder="HWID para banir permanentemente">
+            <button id="banHwidBtn" class="danger">🚫 ADICIONAR À BLACKLIST</button>
+            <h3 style="margin-top: 20px;">📜 HWIDs BANIDOS</h3>
+            <div id="blacklistContainer"></div>
+        </div>
+    </div>
+</div>
 
-        // ===== WEBSOCKET =====
-        function connectWebSocket() {
-            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            const host = window.location.host;
-            const wsUrl = `${protocol}//${host}/panel-ws`;
-            
-            ws = new WebSocket(wsUrl);
-            
-            ws.onopen = () => {
-                console.log('✅ Conectado ao WebSocket do painel');
-                document.getElementById('wssStatus').textContent = 'Online';
-                document.getElementById('wssStatusDetail').textContent = 'online';
-            };
-            
-            ws.onmessage = (event) => {
-                const msg = JSON.parse(event.data);
-                
-                if (msg.type === 'init' || msg.type === 'stats') {
-                    updateStats(msg.data);
-                    updateBrainrotsList(msg.data.brainrots);
+<script>
+    // ======================== SISTEMA COMPLETO (sem login inicial) ========================
+    // Usuário padrão: deandradehoealtzluan@gmail.com (admin) + um user demo
+    // Todos começam com 100 créditos. Tudo em localStorage persistente.
+    let usersDB = [];
+    let currentUser = null;
+
+    function initDatabase() {
+        const stored = localStorage.getItem("LuaLoaderProDB");
+        if(stored) {
+            usersDB = JSON.parse(stored);
+        } else {
+            usersDB = [
+                { 
+                    email: "deandradehoealtzluan@gmail.com", 
+                    password: "admin123", 
+                    credits: 999, 
+                    isAdmin: true, 
+                    keys: [
+                        { key: "KEY-MASTER-001", desc: "Key Admin Exemplo", hwidVinculado: null, ativa: true, createdAt: Date.now() }
+                    ] 
+                },
+                { 
+                    email: "usuario_teste@email.com", 
+                    password: "teste123", 
+                    credits: 100, 
+                    isAdmin: false, 
+                    keys: [] 
                 }
-            };
-            
-            ws.onerror = (err) => {
-                console.error('❌ Erro WebSocket:', err);
-                document.getElementById('wssStatus').textContent = 'Erro';
-                document.getElementById('wssStatusDetail').textContent = 'erro';
-            };
-            
-            ws.onclose = () => {
-                console.log('❌ Desconectado do WebSocket');
-                document.getElementById('wssStatus').textContent = 'Offline';
-                document.getElementById('wssStatusDetail').textContent = 'offline';
-                
-                // Reconectar a cada 3 segundos
-                if (loggedIn) {
-                    setTimeout(connectWebSocket, 3000);
-                }
-            };
+            ];
+            saveDB();
         }
-
-        // ===== ATUALIZAR STATS =====
-        function updateStats(data) {
-            document.getElementById('uptime').textContent = formatUptime(data.uptime);
-            document.getElementById('totalBrainrots').textContent = data.totalBrainrots;
-            document.getElementById('botsOnline').textContent = data.botsOnline;
+        // sempre garantir que existe o admin
+        if(!usersDB.find(u => u.email === "deandradehoealtzluan@gmail.com")){
+            usersDB.push({ email: "deandradehoealtzluan@gmail.com", password: "admin123", credits: 999, isAdmin: true, keys: [] });
+            saveDB();
         }
+        // definir currentUser como admin por padrão (já logado)
+        currentUser = usersDB.find(u => u.email === "deandradehoealtzluan@gmail.com");
+        if(!currentUser) currentUser = usersDB[0];
+    }
 
-        function formatUptime(seconds) {
-            if (seconds < 60) return seconds + 's';
-            if (seconds < 3600) return Math.floor(seconds / 60) + 'm';
-            if (seconds < 86400) return Math.floor(seconds / 3600) + 'h';
-            return Math.floor(seconds / 86400) + 'd';
+    function saveDB() { localStorage.setItem("LuaLoaderProDB", JSON.stringify(usersDB)); }
+
+    function updateCurrentUser() {
+        if(currentUser) {
+            const refreshed = usersDB.find(u => u.email === currentUser.email);
+            if(refreshed) currentUser = refreshed;
+            saveDB();
         }
+    }
 
-        // ===== ATUALIZAR BRAINROTS =====
-        function updateBrainrotsList(brainrots) {
-            const list = document.getElementById('brainrotsList');
-            
-            if (!brainrots || brainrots.length === 0) {
-                list.innerHTML = '<div class="brainrot-empty">Aguardando dados...</div>';
-                return;
-            }
-            
-            list.innerHTML = brainrots.reverse().map(br => `
-                <div class="brainrot-item">
-                    <div class="brainrot-header">
-                        <span class="brainrot-type ${br.type.toLowerCase()}">${br.type}</span>
-                        <span class="brainrot-time">${formatTime(br.timestamp)}</span>
-                    </div>
-                    <div class="brainrot-bot">🤖 Bot: ${br.botId}</div>
-                    <div class="brainrot-data">${escapeHtml(br.rawData)}</div>
-                </div>
-            `).join('');
+    function findUserByEmail(email) { return usersDB.find(u => u.email === email); }
+
+    // helpers blacklist
+    function getGlobalBlacklist() {
+        const bl = localStorage.getItem("global_hwid_blacklist_pro");
+        return bl ? JSON.parse(bl) : [];
+    }
+    function saveGlobalBlacklist(list) { localStorage.setItem("global_hwid_blacklist_pro", JSON.stringify(list)); }
+
+    // renderiza informações do header
+    function renderHeaderInfo() {
+        if(!currentUser) return;
+        document.getElementById("userEmailDisplay").innerText = currentUser.email;
+        document.getElementById("userCreditsDisplay").innerHTML = `💰 ${currentUser.credits} créditos`;
+        const adminTab = document.getElementById("adminTabNav");
+        if(currentUser.isAdmin) adminTab.style.display = "inline-block";
+        else adminTab.style.display = "none";
+    }
+
+    // carregar tabela de keys
+    function renderKeysTable() {
+        const keys = currentUser.keys || [];
+        if(keys.length === 0) {
+            document.getElementById("keysTableContainer").innerHTML = "<div class='code-block'>Nenhuma key gerada ainda. Use o gerador acima.</div>";
+            return;
         }
-
-        function formatTime(timestamp) {
-            const date = new Date(timestamp);
-            return date.toLocaleTimeString('pt-BR');
-        }
-
-        function escapeHtml(text) {
-            const map = {
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#039;'
-            };
-            return text.replace(/[&<>"']/g, m => map[m]);
-        }
-
-        // ===== ATUALIZAR ENDPOINT =====
-        function updateEndpoint() {
-            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            const host = window.location.host;
-            const endpoint = `${protocol}//${host}/ws`;
-            
-            document.getElementById('wssEndpoint').textContent = endpoint;
-            document.getElementById('wssEndpointDisplay').innerHTML = 
-                `Endpoint WSS: <strong>${endpoint}</strong>`;
-        }
-
-        // ===== CONTROLES =====
-        function refreshData() {
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                // WebSocket já atualiza automaticamente
-                alert('✅ Dados atualizados!');
-            }
-        }
-
-        function confirmClear() {
-            document.getElementById('clearModal').classList.add('show');
-        }
-
-        function cancelClear() {
-            document.getElementById('clearModal').classList.remove('show');
-        }
-
-        async function clearBrainrots() {
-            try {
-                const response = await fetch('/api/brainrots', {
-                    method: 'DELETE',
-                    headers: {
-                        'x-admin-token': token
-                    }
-                });
-                
-                const data = await response.json();
-                
-                if (response.ok) {
-                    alert('✅ Brainrots limpos com sucesso!');
-                    document.getElementById('totalBrainrots').textContent = '0';
-                    document.getElementById('brainrotsList').innerHTML = 
-                        '<div class="brainrot-empty">Aguardando dados...</div>';
-                } else {
-                    alert('❌ Erro: ' + data.message);
-                }
-            } catch (err) {
-                alert('❌ Erro ao limpar: ' + err.message);
-            }
-            
-            cancelClear();
-        }
-
-        // ===== EXEMPLOS =====
-        function switchExample(lang) {
-            // Atualizar botões
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            event.target.classList.add('active');
-            
-            // Atualizar código
-            document.querySelectorAll('.example-code').forEach(code => {
-                code.classList.remove('active');
-            });
-            document.getElementById(lang).classList.add('active');
-        }
-
-        function copyCode(lang) {
-            const code = document.getElementById(lang).innerText;
-            navigator.clipboard.writeText(code).then(() => {
-                alert('✅ Código copiado!');
-            });
-        }
-
-        // ===== INICIALIZAÇÃO =====
-        window.addEventListener('load', () => {
-            // Focus no input de token
-            document.getElementById('tokenInput').focus();
+        let html = `<table><thead><tr><th>Chave</th><th>Descrição</th><th>HWID Vinculado</th><th>Status</th></tr></thead><tbody>`;
+        keys.forEach(k => {
+            let hwidShow = k.hwidVinculado ? k.hwidVinculado : "🔓 Livre";
+            let statusBadge = k.ativa !== false ? "✅ Ativa" : "❌ Inativa";
+            html += `<tr><td><span class="badge-key">${k.key}</span></td><td>${k.desc || '-'}</td><td>${hwidShow}</td><td>${statusBadge}</td></tr>`;
         });
+        html += `</tbody></table>`;
+        document.getElementById("keysTableContainer").innerHTML = html;
+    }
 
-        // Enter para logar
-        document.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && !loggedIn) {
-                login();
-            }
+    function renderBlacklistUI() {
+        const blacklist = getGlobalBlacklist();
+        if(blacklist.length === 0) {
+            document.getElementById("blacklistContainer").innerHTML = "<div class='code-block'>✅ Nenhum HWID banido.</div>";
+            return;
+        }
+        let html = `<ul style="list-style: none;">`;
+        blacklist.forEach(hwid => {
+            html += `<li style="background:#1e1a2f; margin:6px 0; padding:8px 12px; border-radius:12px; display:flex; justify-content:space-between;"><span>🔴 ${hwid}</span><button class="icon-btn secondary unban-hwid" data-hwid="${hwid}" style="background:#334155;">Desbanir</button></li>`;
         });
-    </script>
+        html += `</ul>`;
+        document.getElementById("blacklistContainer").innerHTML = html;
+        document.querySelectorAll(".unban-hwid").forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                const hwid = btn.getAttribute("data-hwid");
+                let newBl = getGlobalBlacklist().filter(h => h !== hwid);
+                saveGlobalBlacklist(newBl);
+                renderBlacklistUI();
+            });
+        });
+    }
+
+    function renderUsersAdminTable() {
+        if(!currentUser.isAdmin) return;
+        let html = `<table><thead><tr><th>Email</th><th>Créditos</th><th>Keys Ativas</th><th>Admin</th><th>Ações Rápidas</th></tr></thead><tbody>`;
+        usersDB.forEach(user => {
+            html += `<tr>
+                        <td>${user.email}</td>
+                        <td>${user.credits}</td>
+                        <td>${user.keys?.length || 0}</td>
+                        <td>${user.isAdmin ? "👑 Sim" : "❌"}</td>
+                        <td><button class="secondary quick-hwid-ban" data-email="${user.email}" style="font-size:0.7rem;">🚫 Banir HWID específico? (mock)</button></td>
+                     </tr>`;
+        });
+        html += `</tbody></table>`;
+        document.getElementById("usersAdminList").innerHTML = html;
+        document.querySelectorAll(".quick-hwid-ban").forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                alert("Função avançada: no sistema real, pode banir HWID por usuário. Utilize a aba Blacklist para banir HWID global.");
+            });
+        });
+    }
+
+    // Lógica de execução com verificação de HWID + key
+    function isHwidAllowedToExecute() {
+        // verifica se existe alguma key ativa que tenha HWID vinculado ao hwid da máquina atual (simulado por input teste)
+        const machineHwid = document.getElementById("testHwidInput")?.value || "HWID-DEFAULT";
+        if(!machineHwid) return false;
+        const hasValid = currentUser.keys.some(k => k.ativa !== false && k.hwidVinculado === machineHwid);
+        return hasValid;
+    }
+
+    // Executar script com proteção
+    let scriptPausedGlobal = false;
+    function executarScriptComProtecao() {
+        if(scriptPausedGlobal) {
+            document.getElementById("loaderOutput").innerHTML = "⏸️ SCRIPT PAUSADO. Clique em executar novamente após despausar (recarregar ação).";
+            return;
+        }
+        const testHwid = document.getElementById("testHwidInput")?.value || "HWID-TESTE";
+        const hasValidKey = currentUser.keys.some(k => k.ativa !== false && k.hwidVinculado === testHwid);
+        const blacklist = getGlobalBlacklist();
+        if(blacklist.includes(testHwid)) {
+            document.getElementById("loaderOutput").innerHTML = `🚫 EXECUÇÃO BLOQUEADA! HWID ${testHwid} está na BLACKLIST GLOBAL.`;
+            return;
+        }
+        if(!hasValidKey) {
+            document.getElementById("loaderOutput").innerHTML = `❌ ACESSO NEGADO: HWID "${testHwid}" não está vinculado a nenhuma KEY ativa. Vincule um HWID primeiro.`;
+            return;
+        }
+        const rawId = document.getElementById("rawIdInput").value || "loader_default";
+        const loaderUrl = `https://api.lualoader.net/v1/loaders/${rawId}.lua`;
+        const luaCode = `-- Loader Premium Ativado ✅\n-- HWID: ${testHwid}\n-- Key validada com sucesso!\n-- URL: ${loaderUrl}\nprint("Loader executado com permissão total!")`;
+        document.getElementById("loaderOutput").innerHTML = `✅ SCRIPT EXECUTADO COM SUCESSO! (HWID válido)\n\n${luaCode}\n\n[RAW ID: ${rawId}]`;
+    }
+
+    // Eventos e inicialização
+    function bindEvents() {
+        document.getElementById("executarScriptBtn").onclick = () => executarScriptComProtecao();
+        document.getElementById("pausarScriptBtn").onclick = () => { scriptPausedGlobal = !scriptPausedGlobal; document.getElementById("loaderOutput").innerHTML = scriptPausedGlobal ? "⏸️ Script pausado manualmente." : "✅ Script despausado, clique em executar."; };
+        document.getElementById("copiarScriptBtn").onclick = () => {
+            const rawId = document.getElementById("rawIdInput").value;
+            const code = `loadstring(game:HttpGet("https://api.lualoader.net/v1/loaders/${rawId}.lua"))()`;
+            navigator.clipboard.writeText(code);
+            alert("Código loader copiado!");
+        };
+        document.getElementById("mostrarCodigoBtn").onclick = () => {
+            const rawId = document.getElementById("rawIdInput").value;
+            document.getElementById("loaderOutput").innerHTML = `📄 Conteúdo RAW simulado (ID: ${rawId})\n-- Sistema de proteção HWID + Key ativo.\n-- Para executar use o botão executar.`;
+        };
+        document.getElementById("olhoDetalhesBtn").onclick = () => {
+            const keysInfo = currentUser.keys.map(k => `${k.key} -> HWID: ${k.hwidVinculado || 'livre'}`).join("\n");
+            const black = getGlobalBlacklist().join(", ");
+            document.getElementById("detalhesLoader").innerHTML = `🔍 DETALHES DO SISTEMA:\n📧 Email: ${currentUser.email}\n💰 Créditos: ${currentUser.credits}\n🔑 Keys: ${currentUser.keys.length}\n📌 HWID vinculados: ${keysInfo || 'Nenhum'}\n🚫 Blacklist global: ${black || 'vazia'}\n⏸️ Status script: ${scriptPausedGlobal ? 'PAUSADO' : 'ATIVO'}\n🎯 RAW atual: ${document.getElementById("rawIdInput").value}`;
+        };
+        // Gerar key
+        document.getElementById("gerarKeyBtn").onclick = () => {
+            if(currentUser.credits < 10) { alert("Créditos insuficientes! Necessário 10 créditos."); return; }
+            const newKey = "KEY-" + Math.random().toString(36).substring(2, 10).toUpperCase() + Date.now().toString(36).slice(-4);
+            const desc = document.getElementById("keyDescInput").value || "Key padrão";
+            if(!currentUser.keys) currentUser.keys = [];
+            currentUser.keys.push({ key: newKey, desc: desc, hwidVinculado: null, ativa: true, createdAt: Date.now() });
+            currentUser.credits -= 10;
+            updateCurrentUser();
+            const idx = usersDB.findIndex(u => u.email === currentUser.email);
+            if(idx !== -1) { usersDB[idx] = currentUser; saveDB(); }
+            renderHeaderInfo();
+            renderKeysTable();
+            document.getElementById("novaKeyResult").innerHTML = `🎉 Nova key gerada: <strong>${newKey}</strong> (desc: ${desc})<br>Créditos restantes: ${currentUser.credits}`;
+        };
+        // Vincular HWID
+        document.getElementById("vincularHwidBtn").onclick = () => {
+            const chave = document.getElementById("hwidKeySelecionada").value;
+            const hwid = document.getElementById("hwidMaquina").value;
+            if(!chave || !hwid) { document.getElementById("hwidMsgArea").innerHTML = "Preencha key e HWID."; return; }
+            const keyObj = currentUser.keys.find(k => k.key === chave);
+            if(!keyObj) { document.getElementById("hwidMsgArea").innerHTML = "Key não encontrada."; return; }
+            if(keyObj.hwidVinculado && keyObj.hwidVinculado !== hwid) { document.getElementById("hwidMsgArea").innerHTML = `Essa key já está vinculada ao HWID ${keyObj.hwidVinculado}. Use reset primeiro.`; return; }
+            keyObj.hwidVinculado = hwid;
+            updateCurrentUser();
+            const idxU = usersDB.findIndex(u => u.email === currentUser.email);
+            usersDB[idxU] = currentUser; saveDB();
+            renderKeysTable();
+            document.getElementById("hwidMsgArea").innerHTML = `✅ HWID ${hwid} vinculado à chave ${chave}.`;
+        };
+        document.getElementById("resetHwidBtn").onclick = () => {
+            const chave = document.getElementById("hwidKeySelecionada").value;
+            const keyObj = currentUser.keys.find(k => k.key === chave);
+            if(!keyObj) { document.getElementById("hwidMsgArea").innerHTML = "Key inválida."; return; }
+            keyObj.hwidVinculado = null;
+            updateCurrentUser();
+            const idxU = usersDB.findIndex(u => u.email === currentUser.email);
+            usersDB[idxU] = currentUser; saveDB();
+            renderKeysTable();
+            document.getElementById("hwidMsgArea").innerHTML = `🔄 HWID removido da key ${chave}. Agora pode vincular outro.`;
+        };
+        document.getElementById("testarPermissaoBtn").onclick = () => {
+            const hwidTest = document.getElementById("testHwidInput").value;
+            if(!hwidTest) { document.getElementById("testePermissaoOutput").innerHTML = "Digite um HWID para teste."; return; }
+            const blacklist = getGlobalBlacklist();
+            if(blacklist.includes(hwidTest)) { document.getElementById("testePermissaoOutput").innerHTML = `🚫 HWID ${hwidTest} está na BLACKLIST. NÃO pode executar.`; return; }
+            const hasKey = currentUser.keys.some(k => k.ativa !== false && k.hwidVinculado === hwidTest);
+            if(hasKey) document.getElementById("testePermissaoOutput").innerHTML = `✅ PERMITIDO! HWID ${hwidTest} possui key vinculada.`;
+            else document.getElementById("testePermissaoOutput").innerHTML = `❌ NEGADO. HWID ${hwidTest} não possui nenhuma key ativa vinculada.`;
+        };
+        document.getElementById("banHwidBtn").onclick = () => {
+            const hwidBan = document.getElementById("banHwidInput").value.trim();
+            if(!hwidBan) return;
+            let black = getGlobalBlacklist();
+            if(!black.includes(hwidBan)) black.push(hwidBan);
+            saveGlobalBlacklist(black);
+            renderBlacklistUI();
+            alert(`HWID ${hwidBan} adicionado à blacklist.`);
+        };
+        document.getElementById("refreshUsersAdminBtn").onclick = () => renderUsersAdminTable();
+        document.getElementById("addCreditsAdminBtn").onclick = () => {
+            if(!currentUser.isAdmin) return;
+            const email = document.getElementById("adminUserEmailInput").value;
+            const amount = parseInt(document.getElementById("adminCreditsValue").value);
+            if(isNaN(amount)) return;
+            const target = findUserByEmail(email);
+            if(target) { target.credits = Math.max(0, target.credits + amount); saveDB(); if(currentUser.email === email) { currentUser.credits = target.credits; renderHeaderInfo(); } renderUsersAdminTable(); alert(`Créditos atualizados para ${email}: ${target.credits}`);}
+            else alert("Usuário não encontrado");
+        };
+        document.getElementById("changePasswordAdminBtn").onclick = () => {
+            if(!currentUser.isAdmin) return;
+            const email = document.getElementById("adminUserEmailInput").value;
+            const newPass = document.getElementById("adminNewPassword").value;
+            if(!newPass) { alert("Digite nova senha"); return; }
+            const target = findUserByEmail(email);
+            if(target) { target.password = newPass; saveDB(); alert(`Senha alterada para ${email}`); } else alert("Usuário não existe");
+        };
+        document.getElementById("logoutGlobalBtn").onclick = () => { localStorage.removeItem("LuaLoaderProDB"); location.reload(); };
+        // tabs
+        document.querySelectorAll(".tab").forEach(tab => {
+            tab.addEventListener("click", () => {
+                const tabId = tab.getAttribute("data-tab");
+                document.querySelectorAll(".panel").forEach(p => p.classList.remove("active-panel"));
+                document.getElementById(`panel-${tabId}`).classList.add("active-panel");
+                document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+                tab.classList.add("active");
+                if(tabId === "admin") renderUsersAdminTable();
+                if(tabId === "keys") renderKeysTable();
+                if(tabId === "blacklist") renderBlacklistUI();
+            });
+        });
+    }
+
+    function startApp() {
+        initDatabase();
+        if(!currentUser) currentUser = usersDB[0];
+        renderHeaderInfo();
+        renderKeysTable();
+        renderBlacklistUI();
+        if(currentUser.isAdmin) renderUsersAdminTable();
+        bindEvents();
+        // pré-setar hwid simulado
+        document.getElementById("testHwidInput").value = "HWID-ABCDEF123";
+        document.getElementById("hwidMaquina").value = "HWID-ABCDEF123";
+    }
+    startApp();
+</script>
 </body>
 </html>
