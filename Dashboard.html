@@ -2,72 +2,59 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>📡 Receptor de Dados - Tempo Real</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📡 WSS Receptor - Dashboard</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             padding: 15px;
             min-height: 100vh;
         }
-        
         .container { max-width: 1400px; margin: 0 auto; }
-        
         .header {
-            background: rgba(255,255,255,0.95);
+            background: white;
             border-radius: 15px;
             padding: 20px;
             margin-bottom: 20px;
             box-shadow: 0 5px 20px rgba(0,0,0,0.2);
         }
-        
+        .wss-url {
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 8px;
+            font-family: monospace;
+            margin-top: 10px;
+            word-break: break-all;
+        }
         .stats {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 15px;
             margin-bottom: 20px;
         }
-        
         .stat-card {
             background: white;
             padding: 15px;
             border-radius: 10px;
             text-align: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-        
         .stat-number {
             font-size: 2em;
             font-weight: bold;
-            color: #2a5298;
+            color: #667eea;
         }
-        
-        .stat-label { color: #666; font-size: 0.9em; margin-top: 5px; }
-        
         .content {
             display: grid;
             grid-template-columns: 1fr 300px;
             gap: 20px;
         }
-        
         .messages-panel, .clients-panel {
             background: white;
             border-radius: 15px;
             padding: 20px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
         }
-        
-        .messages-panel h2, .clients-panel h2 {
-            margin-bottom: 15px;
-            color: #333;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
         .messages-list {
             height: 500px;
             overflow-y: auto;
@@ -75,98 +62,49 @@
             border-radius: 10px;
             padding: 10px;
         }
-        
         .message {
             background: white;
-            border-left: 4px solid #2a5298;
-            padding: 12px;
+            border-left: 4px solid #667eea;
+            padding: 10px;
             margin-bottom: 10px;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            font-size: 0.9em;
+            border-radius: 5px;
+            font-size: 0.85em;
         }
-        
         .message-header {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 8px;
-            font-size: 0.8em;
+            margin-bottom: 5px;
+            font-size: 0.75em;
+            color: #666;
         }
-        
-        .cliente-name {
-            font-weight: bold;
-            color: #2a5298;
-        }
-        
-        .timestamp {
-            color: #999;
-        }
-        
-        .message-content {
-            word-break: break-all;
-            font-family: monospace;
-            font-size: 0.85em;
-        }
-        
+        .cliente-name { font-weight: bold; color: #667eea; }
+        .message-content { word-break: break-all; font-family: monospace; }
         .client-item {
             background: #f8f9fa;
-            padding: 12px;
+            padding: 10px;
             margin-bottom: 10px;
-            border-radius: 8px;
+            border-radius: 5px;
             border-left: 4px solid #4caf50;
         }
-        
-        .client-status {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #4caf50;
-            margin-right: 8px;
-        }
-        
         .input-area {
             margin-top: 15px;
             display: flex;
             gap: 10px;
         }
-        
         .input-area input {
             flex: 1;
-            padding: 12px;
+            padding: 10px;
             border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 14px;
+            border-radius: 5px;
         }
-        
         .input-area button {
-            padding: 12px 24px;
-            background: #2a5298;
+            padding: 10px 20px;
+            background: #667eea;
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 5px;
             cursor: pointer;
         }
-        
-        .clear-btn {
-            background: #dc3545 !important;
-        }
-        
-        @media (max-width: 768px) {
-            .content {
-                grid-template-columns: 1fr;
-            }
-            .stat-number { font-size: 1.5em; }
-        }
-        
-        .badge {
-            background: #2a5298;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 20px;
-            font-size: 0.75em;
-        }
-        
         .connection-status {
             position: fixed;
             bottom: 20px;
@@ -176,18 +114,22 @@
             border-radius: 25px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.2);
             font-size: 0.85em;
-            z-index: 1000;
         }
-        
-        .online { color: #4caf50; }
-        .offline { color: #f44336; }
+        .online { color: #4caf50; font-weight: bold; }
+        .offline { color: #f44336; font-weight: bold; }
+        @media (max-width: 768px) {
+            .content { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>📡 Receptor de Dados em Tempo Real</h1>
-            <p>Todos os dados enviados por qualquer dispositivo aparecem aqui instantaneamente</p>
+            <h1>📡 Receptor Global de Dados</h1>
+            <p>Todos os dados aparecem INSTANTANEAMENTE aqui</p>
+            <div class="wss-url" id="wssUrl">
+                🔌 Carregando URL do WebSocket...
+            </div>
         </div>
         
         <div class="stats">
@@ -201,26 +143,27 @@
             </div>
             <div class="stat-card">
                 <div class="stat-number" id="ultimoDado">-</div>
-                <div class="stat-label">Último Dado (seg)</div>
+                <div class="stat-label">Último Dado</div>
             </div>
         </div>
         
         <div class="content">
             <div class="messages-panel">
-                <h2>
-                    📨 Dados Recebidos
-                    <button onclick="limparMensagens()" class="badge" style="background:#dc3545">Limpar</button>
-                </h2>
-                <div class="messages-list" id="messagesList"></div>
+                <h2>📨 Dados em Tempo Real</h2>
+                <div class="messages-list" id="messagesList">
+                    <div style="text-align:center; padding:20px;">Aguardando dados...</div>
+                </div>
                 <div class="input-area">
                     <input type="text" id="broadcastMsg" placeholder="Enviar mensagem para todos os clientes...">
-                    <button onclick="enviarBroadcast()">Enviar</button>
+                    <button onclick="enviarBroadcast()">📢 Broadcast</button>
                 </div>
             </div>
             
             <div class="clients-panel">
-                <h2>👥 Clientes Conectados <span class="badge" id="clientCount">0</span></h2>
-                <div class="messages-list" id="clientsList"></div>
+                <h2>👥 Clientes Conectados</h2>
+                <div class="messages-list" id="clientsList">
+                    <div style="text-align:center; padding:20px;">Nenhum cliente</div>
+                </div>
             </div>
         </div>
     </div>
@@ -233,18 +176,20 @@
         let ws;
         let ultimoTimestamp = 0;
         
-        // PEGA O IP DO SERVIDOR AUTOMATICAMENTE
-        const serverIP = window.location.hostname;
-        const wsUrl = `ws://${serverIP}:${window.location.port}`;
+        // PEGA A URL CORRETA AUTOMATICAMENTE
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${protocol}//${window.location.host}/wss`;
+        
+        document.getElementById('wssUrl').innerHTML = `🔌 WebSocket: <strong>${wsUrl}</strong>`;
         
         function conectar() {
             ws = new WebSocket(wsUrl);
             
             ws.onopen = () => {
-                document.getElementById('connStatus').innerHTML = '✅ Conectado em tempo real';
+                document.getElementById('connStatus').innerHTML = '✅ Conectado ao servidor';
                 document.getElementById('connStatus').style.background = '#4caf50';
                 document.getElementById('connStatus').style.color = 'white';
-                adicionarMensagemSistema('✅ Conectado ao servidor');
+                adicionarMensagemSistema('✅ Conectado! Aguardando dados...');
             };
             
             ws.onmessage = (event) => {
@@ -252,92 +197,77 @@
                 
                 switch(data.tipo) {
                     case 'boas_vindas':
-                        adicionarMensagemSistema(`🎉 ${data.mensagem || 'Conectado!'} ID: ${data.clienteId}`);
+                        adicionarMensagemSistema(`🎉 ${data.mensagem}`);
                         break;
-                        
                     case 'dados_recebidos':
                         adicionarMensagem(data.dado);
-                        atualizarStats();
+                        document.getElementById('clientesOnline').textContent = data.stats?.totalClientes || 0;
+                        document.getElementById('totalDados').textContent = data.stats?.totalDados || 0;
+                        ultimoTimestamp = Date.now();
                         break;
-                        
                     case 'cliente_conectou':
                         adicionarMensagemSistema(`🟢 ${data.cliente.id} conectou`);
-                        atualizarListaClientes();
+                        document.getElementById('clientesOnline').textContent = data.totalClientes;
                         break;
-                        
                     case 'cliente_desconectou':
                         adicionarMensagemSistema(`🔴 ${data.clienteId} desconectou`);
-                        atualizarListaClientes();
+                        document.getElementById('clientesOnline').textContent = data.totalClientes;
                         break;
-                }
-                
-                if(data.stats) {
-                    document.getElementById('clientesOnline').textContent = data.stats.totalClientes;
                 }
             };
             
             ws.onclose = () => {
-                document.getElementById('connStatus').innerHTML = '⚠️ Desconectado - Reconectando...';
+                document.getElementById('connStatus').innerHTML = '⚠️ Desconectado - Reconectando em 3s...';
                 document.getElementById('connStatus').style.background = '#f44336';
                 adicionarMensagemSistema('❌ Desconectado, tentando reconectar...');
                 setTimeout(conectar, 3000);
+            };
+            
+            ws.onerror = (error) => {
+                console.error('Erro:', error);
+                adicionarMensagemSistema('⚠️ Erro na conexão');
             };
         }
         
         function adicionarMensagem(dado) {
             const container = document.getElementById('messagesList');
-            const dataHora = new Date(dado.timestamp).toLocaleString('pt-BR');
-            const conteudo = typeof dado.conteudo === 'object' ? JSON.stringify(dado.conteudo, null, 2) : (dado.conteudo || JSON.stringify(dado));
+            if (container.children[0]?.innerText === 'Aguardando dados...') {
+                container.innerHTML = '';
+            }
             
             const div = document.createElement('div');
             div.className = 'message';
             div.innerHTML = `
                 <div class="message-header">
                     <span class="cliente-name">📱 ${dado.clienteId}</span>
-                    <span class="timestamp">${dataHora}</span>
+                    <span>${new Date(dado.timestamp).toLocaleString()}</span>
                 </div>
-                <div class="message-content">${escapeHtml(conteudo.substring(0, 500))}</div>
+                <div class="message-content">${escapeHtml(JSON.stringify(dado, null, 2).substring(0, 300))}</div>
             `;
-            
             container.insertBefore(div, container.firstChild);
             
-            // Limitar quantidade
             while(container.children.length > 100) {
                 container.removeChild(container.lastChild);
             }
-            
-            ultimoTimestamp = Date.now();
         }
         
         function adicionarMensagemSistema(texto) {
             const container = document.getElementById('messagesList');
+            if (container.children[0]?.innerText === 'Aguardando dados...') {
+                container.innerHTML = '';
+            }
+            
             const div = document.createElement('div');
             div.className = 'message';
             div.style.borderLeftColor = '#ff9800';
             div.innerHTML = `
                 <div class="message-header">
                     <span class="cliente-name">📢 SISTEMA</span>
-                    <span class="timestamp">${new Date().toLocaleString('pt-BR')}</span>
+                    <span>${new Date().toLocaleString()}</span>
                 </div>
                 <div class="message-content">${escapeHtml(texto)}</div>
             `;
             container.insertBefore(div, container.firstChild);
-        }
-        
-        function atualizarListaClientes() {
-            // Simples - será atualizado via mensagens do servidor
-            const count = document.getElementById('clientesOnline').textContent;
-            document.getElementById('clientCount').textContent = count;
-        }
-        
-        function atualizarStats() {
-            const total = document.getElementById('messagesList').children.length;
-            document.getElementById('totalDados').textContent = total;
-            
-            const segundosAtras = Math.floor((Date.now() - ultimoTimestamp) / 1000);
-            if(ultimoTimestamp > 0) {
-                document.getElementById('ultimoDado').textContent = segundosAtras + 's';
-            }
         }
         
         function enviarBroadcast() {
@@ -346,19 +276,11 @@
             if(msg && ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({
                     tipo: 'broadcast_admin',
-                    conteudo: msg,
-                    admin: true,
-                    timestamp: new Date().toISOString()
+                    conteudo: msg
                 }));
-                adicionarMensagemSistema(`📢 Você: ${msg}`);
+                adicionarMensagemSistema(`📢 Broadcast: ${msg}`);
                 input.value = '';
             }
-        }
-        
-        function limparMensagens() {
-            const container = document.getElementById('messagesList');
-            container.innerHTML = '';
-            adicionarMensagemSistema('🗑️ Histórico limpo');
         }
         
         function escapeHtml(text) {
@@ -367,16 +289,15 @@
             return div.innerHTML;
         }
         
-        // Iniciar
-        conectar();
-        
-        // Atualizar contador de tempo
+        // Atualiza tempo do último dado
         setInterval(() => {
             if(ultimoTimestamp > 0) {
                 const segundos = Math.floor((Date.now() - ultimoTimestamp) / 1000);
                 document.getElementById('ultimoDado').textContent = segundos + 's atrás';
             }
         }, 1000);
+        
+        conectar();
     </script>
 </body>
 </html>
