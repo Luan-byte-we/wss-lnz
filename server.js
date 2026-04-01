@@ -3,10 +3,10 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
-// PEGA A PORTA DO RAILWAY
+// PORTA DO RAILWAY
 const PORT = process.env.PORT || 8080;
 
-// Cria servidor HTTP
+// Criar servidor HTTP
 const server = http.createServer((req, res) => {
     const url = req.url;
     
@@ -18,19 +18,14 @@ const server = http.createServer((req, res) => {
             if (err) {
                 res.writeHead(500);
                 res.end('Erro ao carregar dashboard');
-                console.error('Erro ao ler index.html:', err);
+                console.error('Erro:', err);
             } else {
                 res.writeHead(200, { 'Content-Type': 'text/html' });
                 res.end(data);
             }
         });
     }
-    // Rota de teste
-    else if (url === '/teste') {
-        res.writeHead(200, { 'Content-Type': 'text/html' });
-        res.end('<h1>Servidor funcionando!</h1><p>WebSocket disponível em: /on</p>');
-    }
-    // Health check para Railway
+    // Health check
     else if (url === '/health') {
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ 
@@ -51,7 +46,6 @@ const server = http.createServer((req, res) => {
                 <style>
                     body { font-family: sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
                     .card { background: rgba(255,255,255,0.1); padding: 20px; border-radius: 10px; margin: 20px 0; }
-                    a { color: white; }
                     code { background: rgba(0,0,0,0.3); padding: 2px 5px; border-radius: 3px; }
                 </style>
             </head>
@@ -63,21 +57,19 @@ const server = http.createServer((req, res) => {
                 </div>
                 <div class="card">
                     <h2>📊 Dashboard:</h2>
-                    <p><a href="/dashboard">Clique aqui para ver os dados em tempo real</a></p>
+                    <p><a href="/dashboard" style="color:white;">Clique aqui para ver os dados em tempo real</a></p>
                 </div>
                 <div class="card">
                     <h2>📈 Status:</h2>
                     <p>✅ Servidor rodando perfeitamente</p>
                     <p>👥 Clientes conectados: <strong id="clientCount">0</strong></p>
-                    <p>📨 Total de dados recebidos: <strong id="dataCount">0</strong></p>
+                    <p>📨 Total de dados: <strong id="dataCount">0</strong></p>
                 </div>
                 <script>
-                    fetch('/health')
-                        .then(r => r.json())
-                        .then(d => {
-                            document.getElementById('clientCount').textContent = d.clients;
-                            document.getElementById('dataCount').textContent = d.totalData;
-                        });
+                    fetch('/health').then(r=>r.json()).then(d=>{
+                        document.getElementById('clientCount').textContent = d.clients;
+                        document.getElementById('dataCount').textContent = d.totalData;
+                    });
                 </script>
             </body>
             </html>
@@ -85,13 +77,13 @@ const server = http.createServer((req, res) => {
     }
 });
 
-// WEBSOCKET SERVER - NA ROTA /on (como você pediu)
+// WEBSOCKET NA ROTA /on
 const wss = new WebSocket.Server({ 
     server,
-    path: '/on'  // AGORA É /on - sua URL será wss://.../on
+    path: '/on'
 });
 
-// Armazenamento de dados
+// Armazenamento
 const dadosRecebidos = [];
 const clients = new Map();
 let clientIdCounter = 0;
@@ -101,38 +93,30 @@ console.log('║     🚀 WSS SERVER - RECEPTOR DE DADOS GLOBAL         ║');
 console.log('╠═══════════════════════════════════════════════════════╣');
 console.log(`║  🌐 Porta: ${PORT}`);
 console.log(`║  🔌 WebSocket: wss://wss-lnz-production.up.railway.app/on`);
-console.log(`║  📊 Dashboard: https://wss-lnz-production.up.railway.app/dashboard`);
+console.log(`║  📊 Dashboard: https://wss-lnz-production.up.railway.app/`);
 console.log('╚═══════════════════════════════════════════════════════╝');
 
-// Evento de conexão WebSocket
 wss.on('connection', (ws, req) => {
     clientIdCounter++;
     const clientId = `Client_${clientIdCounter}`;
     const ip = req.socket.remoteAddress?.replace('::ffff:', '') || 'unknown';
     const userAgent = req.headers['user-agent'] || 'unknown';
     
-    // Identifica tipo de dispositivo
     let deviceType = '💻 Desktop';
     if (userAgent.includes('Mobile')) deviceType = '📱 Mobile';
     if (userAgent.includes('Discord')) deviceType = '🤖 Discord Bot';
     if (userAgent.includes('Bot')) deviceType = '🤖 Bot';
     
-    // Salva cliente
     clients.set(clientId, {
         id: clientId,
         ip: ip,
         deviceType: deviceType,
-        connectedAt: new Date(),
-        lastMessage: null
+        connectedAt: new Date()
     });
     
-    console.log(`\n✅ NOVA CONEXÃO!`);
-    console.log(`   ID: ${clientId}`);
-    console.log(`   IP: ${ip}`);
-    console.log(`   Tipo: ${deviceType}`);
-    console.log(`   Total conectados: ${clients.size}`);
+    console.log(`\n✅ NOVA CONEXÃO! ID: ${clientId} | Tipo: ${deviceType} | Total: ${clients.size}`);
     
-    // Envia boas-vindas com histórico
+    // Envia boas-vindas
     ws.send(JSON.stringify({
         type: 'welcome',
         clientId: clientId,
@@ -142,88 +126,55 @@ wss.on('connection', (ws, req) => {
         timestamp: new Date().toISOString()
     }));
     
-    // Notifica todos os outros clientes sobre nova conexão
+    // Notifica todos
     broadcast({
         type: 'client_connected',
-        client: {
-            id: clientId,
-            deviceType: deviceType,
-            ip: ip
-        },
+        client: { id: clientId, deviceType: deviceType },
         totalClients: clients.size,
         timestamp: new Date().toISOString()
-    }, ws); // ws = não envia para quem acabou de conectar
+    });
     
-    // Recebe mensagens/dados
+    // Recebe dados
     ws.on('message', (data) => {
         try {
             const rawMessage = data.toString();
             let messageData;
             
-            // Tenta parsear JSON
             try {
                 messageData = JSON.parse(rawMessage);
             } catch {
-                messageData = {
-                    type: 'text',
-                    content: rawMessage
-                };
+                messageData = { type: 'text', content: rawMessage };
             }
             
-            // Cria registro completo
             const fullData = {
                 ...messageData,
                 clientId: clientId,
-                clientIp: ip,
                 clientDevice: deviceType,
-                timestamp: new Date().toISOString(),
-                timestampUnix: Date.now()
+                timestamp: new Date().toISOString()
             };
             
-            // Armazena
             dadosRecebidos.push(fullData);
+            if (dadosRecebidos.length > 500) dadosRecebidos.shift();
             
-            // Mantém só últimos 500 dados
-            if (dadosRecebidos.length > 500) {
-                dadosRecebidos.shift();
-            }
+            console.log(`📨 [${clientId}] ${rawMessage.substring(0, 80)}`);
             
-            // Atualiza última mensagem do cliente
-            const client = clients.get(clientId);
-            if (client) {
-                client.lastMessage = new Date();
-                clients.set(clientId, client);
-            }
-            
-            console.log(`📨 [${clientId}] ${deviceType}: ${rawMessage.substring(0, 100)}`);
-            
-            // Envia para TODOS os clientes conectados
             broadcast({
                 type: 'new_data',
                 data: fullData,
                 stats: {
                     totalData: dadosRecebidos.length,
-                    totalClients: clients.size,
-                    lastUpdate: new Date().toISOString()
+                    totalClients: clients.size
                 }
             });
             
         } catch (error) {
-            console.error(`❌ Erro ao processar mensagem:`, error.message);
-            ws.send(JSON.stringify({
-                type: 'error',
-                message: 'Erro ao processar dados',
-                error: error.message
-            }));
+            console.error('Erro:', error.message);
         }
     });
     
-    // Cliente desconectou
     ws.on('close', () => {
         clients.delete(clientId);
-        console.log(`\n❌ CLIENTE DESCONECTOU!`);
-        console.log(`   ID: ${clientId}`);
-        console.log(`   Restam: ${clients.size} clientes`);
+        console.log(`❌ ${clientId} desconectou | Restam: ${clients.size}`);
         
         broadcast({
             type: 'client_disconnected',
@@ -232,39 +183,26 @@ wss.on('connection', (ws, req) => {
             timestamp: new Date().toISOString()
         });
     });
-    
-    ws.on('error', (error) => {
-        console.error(`⚠️ Erro no cliente ${clientId}:`, error.message);
-    });
 });
 
-// Função para enviar mensagem para todos os clientes
 function broadcast(message, excludeWs = null) {
-    const messageStr = JSON.stringify(message);
-    let sentCount = 0;
-    
+    const msgStr = JSON.stringify(message);
     wss.clients.forEach(client => {
         if (client !== excludeWs && client.readyState === WebSocket.OPEN) {
-            client.send(messageStr);
-            sentCount++;
+            client.send(msgStr);
         }
     });
-    
-    if (message.type === 'new_data' && sentCount > 0) {
-        console.log(`   📡 Broadcast enviado para ${sentCount} clientes`);
-    }
 }
 
-// Health check endpoint
+// Inicia servidor
 server.listen(PORT, '0.0.0.0', () => {
-    console.log(`\n✨ Servidor rodando em 0.0.0.0:${PORT}`);
+    console.log(`\n✨ Servidor rodando na porta ${PORT}`);
     console.log(`🔗 URLs disponíveis:`);
     console.log(`   📊 Dashboard: https://wss-lnz-production.up.railway.app/`);
-    console.log(`   🔌 WebSocket: wss://wss-lnz-production.up.railway.app/on`);
-    console.log(`   💚 Health:    https://wss-lnz-production.up.railway.app/health\n`);
+    console.log(`   🔌 WebSocket: wss://wss-lnz-production.up.railway.app/on\n`);
 });
 
-// Mantém o servidor ativo (importante para Railway)
+// Heartbeat
 setInterval(() => {
     console.log(`💓 Heartbeat - Clientes: ${clients.size} | Dados: ${dadosRecebidos.length}`);
 }, 30000);
