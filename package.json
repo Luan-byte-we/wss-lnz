@@ -1,15 +1,29 @@
 {
-  "name": "wss-receptor-global",
+  "name": "wss-receptor",
   "version": "1.0.0",
-  "description": "Servidor WSS que recebe dados de qualquer lugar",
-  "main": "servidor.js",
+  "description": "Servidor WSS receptor de dados global para Railway.app",
+  "main": "server.js",
   "scripts": {
-    "start": "node servidor.js"
+    "start": "node server.js",
+    "dev": "node server.js"
   },
+  "keywords": [
+    "websocket",
+    "wss",
+    "real-time",
+    "dashboard",
+    "broadcast"
+  ],
+  "author": "",
+  "license": "MIT",
   "dependencies": {
     "ws": "^8.14.2"
   },
   "engines": {
     "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": ""
   }
 }
