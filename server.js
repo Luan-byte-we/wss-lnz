@@ -1,11 +1,18 @@
 const WebSocket = require('ws');
 const http = require('http');
+const url = require('url');
 const fs = require('fs');
 const path = require('path');
 
-// Criar servidor HTTP para servir o dashboard
+// PORTA do Railway (eles fornecem automaticamente)
+const PORT = process.env.PORT || 8080;
+
+// Criar servidor HTTP para o dashboard
 const server = http.createServer((req, res) => {
-    if (req.url === '/') {
+    const parsedUrl = url.parse(req.url, true);
+    
+    // Rota principal - Dashboard
+    if (parsedUrl.pathname === '/' || parsedUrl.pathname === '/dashboard') {
         fs.readFile(path.join(__dirname, 'dashboard.html'), (err, data) => {
             if (err) {
                 res.writeHead(500);
@@ -15,111 +22,212 @@ const server = http.createServer((req, res) => {
                 res.end(data);
             }
         });
-    } else {
+    }
+    // Rota do cliente exemplo
+    else if (parsedUrl.pathname === '/cliente') {
+        fs.readFile(path.join(__dirname, 'cliente.html'), (err, data) => {
+            if (err) {
+                res.writeHead(500);
+                res.end('Erro');
+            } else {
+                res.writeHead(200, { 'Content-Type': 'text/html' });
+                res.end(data);
+            }
+        });
+    }
+    // API para estatísticas
+    else if (parsedUrl.pathname === '/api/stats') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+            totalClientes: clientes.size,
+            totalDados: dadosRecebidos.length,
+            status: 'online',
+            timestamp: new Date().toISOString()
+        }));
+    }
+    else {
         res.writeHead(404);
-        res.end();
+        res.end('Rota não encontrada. Use /dashboard ou /cliente');
     }
 });
 
-// WebSocket server na mesma porta
-const wss = new WebSocket.Server({ server });
+// WebSocket Server na rota /wss
+const wss = new WebSocket.Server({ 
+    server,
+    path: '/wss'  // IMPORTANTE: sua rota será /wss
+});
 
-// Armazenar dados recebidos
+// Armazenamento de dados
 const dadosRecebidos = [];
-let contadorClientes = 0;
+const clientes = new Map();
+let contadorId = 0;
 
-console.log('🚀 Servidor rodando em:');
-console.log('   WebSocket: ws://localhost:8080');
-console.log('   Dashboard: http://localhost:8080');
+console.log('╔══════════════════════════════════════════════════════╗');
+console.log('║     🚀 SERVIDOR WSS RECEPTOR DE DADOS GLOBAL        ║');
+console.log('╠══════════════════════════════════════════════════════╣');
+console.log(`║  🌐 WebSocket: wss://wss-lnz1-production.up.railway.app/wss`);
+console.log(`║  📊 Dashboard: https://wss-lnz1-production.up.railway.app/dashboard`);
+console.log(`║  📱 Cliente:   https://wss-lnz1-production.up.railway.app/cliente`);
+console.log('╠══════════════════════════════════════════════════════╣');
+console.log('║  ✅ Aceitando conexões de QUALQUER dispositivo!     ║');
+console.log('╚══════════════════════════════════════════════════════╝');
 
 wss.on('connection', (ws, req) => {
-    contadorClientes++;
-    const clienteId = `Cliente_${contadorClientes}`;
-    const ip = req.socket.remoteAddress;
+    contadorId++;
+    const clienteId = `Cliente_${contadorId}`;
+    const ip = req.socket.remoteAddress?.replace('::ffff:', '') || 'Desconhecido';
+    const userAgent = req.headers['user-agent'] || 'Desconhecido';
     
-    console.log(`✅ ${clienteId} conectou (IP: ${ip})`);
+    // Identificar tipo de dispositivo
+    let tipoDispositivo = 'desconhecido';
+    if (userAgent.includes('Mobile')) tipoDispositivo = '📱 Celular';
+    else if (userAgent.includes('Discord')) tipoDispositivo = '🤖 Discord Bot';
+    else if (userAgent.includes('Bot')) tipoDispositivo = '🤖 Bot';
+    else if (userAgent.includes('Chrome')) tipoDispositivo = '🌐 Chrome';
+    else if (userAgent.includes('Firefox')) tipoDispositivo = '🦊 Firefox';
+    else if (userAgent.includes('Safari')) tipoDispositivo = '🍎 Safari';
+    else tipoDispositivo = '💻 Computador';
     
-    // Identificar tipo de cliente (opcional)
-    let tipoCliente = 'desconhecido';
+    // Salvar cliente
+    clientes.set(clienteId, {
+        id: clienteId,
+        ip: ip,
+        tipo: tipoDispositivo,
+        userAgent: userAgent,
+        conectadoEm: new Date(),
+        ultimaMsg: new Date()
+    });
     
-    // Enviar ID pro cliente
+    console.log(`\n✅ [${new Date().toLocaleString()}] NOVO CLIENTE:`);
+    console.log(`   ID: ${clienteId}`);
+    console.log(`   IP: ${ip}`);
+    console.log(`   Tipo: ${tipoDispositivo}`);
+    console.log(`   Total conectados: ${clientes.size}`);
+    
+    // Enviar boas-vindas com histórico
     ws.send(JSON.stringify({
-        tipo: 'identificacao',
+        tipo: 'boas_vindas',
         clienteId: clienteId,
-        dadosHistoricos: dadosRecebidos.slice(-50) // últimos 50 dados
+        mensagem: `Bem-vindo! Você é o cliente #${contadorId}`,
+        totalClientes: clientes.size,
+        historico: dadosRecebidos.slice(-20),
+        timestamp: new Date().toISOString()
     }));
     
+    // Notificar todos sobre nova conexão
+    broadcast({
+        tipo: 'cliente_conectou',
+        cliente: {
+            id: clienteId,
+            ip: ip,
+            tipo: tipoDispositivo
+        },
+        totalClientes: clientes.size,
+        timestamp: new Date().toISOString()
+    });
+    
+    // Receber mensagens/dados
     ws.on('message', (data) => {
         try {
+            const mensagemRecebida = data.toString();
+            let dadoProcessado;
+            
             // Tenta parsear como JSON
-            let mensagem;
             try {
-                mensagem = JSON.parse(data.toString());
+                dadoProcessado = JSON.parse(mensagemRecebida);
             } catch {
-                // Se não for JSON, trata como texto simples
-                mensagem = {
-                    tipo: 'texto',
-                    conteudo: data.toString(),
-                    timestamp: new Date().toISOString()
+                dadoProcessado = {
+                    tipo: 'texto_simples',
+                    conteudo: mensagemRecebida
                 };
             }
             
-            // Adicionar metadados
+            // Adicionar metadados completos
             const dadoCompleto = {
-                ...mensagem,
+                ...dadoProcessado,
                 clienteId: clienteId,
                 clienteIp: ip,
+                clienteTipo: tipoDispositivo,
                 timestamp: new Date().toISOString(),
-                tipoCliente: tipoCliente
+                timestampUnix: Date.now()
             };
             
             // Armazenar
             dadosRecebidos.push(dadoCompleto);
+            if (dadosRecebidos.length > 1000) dadosRecebidos.shift();
             
-            // Manter só últimos 1000 dados
-            if (dadosRecebidos.length > 1000) {
-                dadosRecebidos.shift();
+            // Atualizar última mensagem do cliente
+            const cliente = clientes.get(clienteId);
+            if (cliente) {
+                cliente.ultimaMsg = new Date();
+                clientes.set(clienteId, cliente);
             }
             
-            console.log(`📨 [${clienteId}] Recebido:`, dadoCompleto);
+            console.log(`📨 [${clienteId}] ${tipoDispositivo}: ${mensagemRecebida.substring(0, 100)}`);
             
-            // Broadcast para todos os clientes (incluindo dashboard)
-            wss.clients.forEach(client => {
-                if (client.readyState === WebSocket.OPEN) {
-                    client.send(JSON.stringify({
-                        tipo: 'novo_dado',
-                        dado: dadoCompleto,
-                        total: dadosRecebidos.length
-                    }));
+            // Broadcast para TODOS os clientes (dashboard, outros dispositivos)
+            broadcast({
+                tipo: 'dados_recebidos',
+                dado: dadoCompleto,
+                stats: {
+                    totalDados: dadosRecebidos.length,
+                    totalClientes: clientes.size,
+                    ultimoDado: new Date().toISOString()
                 }
             });
             
         } catch (error) {
-            console.error('Erro ao processar mensagem:', error);
+            console.error(`❌ Erro ao processar mensagem de ${clienteId}:`, error.message);
+            ws.send(JSON.stringify({
+                tipo: 'erro',
+                mensagem: 'Erro ao processar seus dados',
+                erro: error.message
+            }));
         }
     });
     
+    // Cliente desconectou
     ws.on('close', () => {
-        console.log(`❌ ${clienteId} desconectou`);
+        clientes.delete(clienteId);
+        console.log(`\n❌ [${new Date().toLocaleString()}] ${clienteId} (${tipoDispositivo}) desconectou`);
+        console.log(`   👥 Restam ${clientes.size} clientes conectados`);
         
-        // Notificar todos sobre desconexão
-        wss.clients.forEach(client => {
-            if (client.readyState === WebSocket.OPEN) {
-                client.send(JSON.stringify({
-                    tipo: 'cliente_desconectou',
-                    clienteId: clienteId
-                }));
-            }
+        broadcast({
+            tipo: 'cliente_desconectou',
+            clienteId: clienteId,
+            clienteTipo: tipoDispositivo,
+            totalClientes: clientes.size,
+            timestamp: new Date().toISOString()
         });
     });
     
     ws.on('error', (error) => {
-        console.error(`Erro no ${clienteId}:`, error);
+        console.error(`⚠️ Erro no ${clienteId}:`, error.message);
     });
 });
 
-server.listen(8080, () => {
-    console.log('\n✨ Servidor pronto para receber conexões!');
-    console.log('📊 Dashboard: http://localhost:8080');
-    console.log('🔌 WebSocket: ws://localhost:8080\n');
+// Função para enviar mensagem para todos
+function broadcast(mensagem) {
+    const msgString = JSON.stringify(mensagem);
+    let enviados = 0;
+    
+    wss.clients.forEach(client => {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(msgString);
+            enviados++;
+        }
+    });
+    
+    if (enviados > 0 && mensagem.tipo === 'dados_recebidos') {
+        console.log(`   📡 Broadcast para ${enviados} clientes`);
+    }
+}
+
+// Iniciar servidor
+server.listen(PORT, '0.0.0.0', () => {
+    console.log(`\n✨ Servidor rodando em 0.0.0.0:${PORT}`);
+    console.log(`🔗 Endereços disponíveis:`);
+    console.log(`   📊 Dashboard: https://wss-lnz1-production.up.railway.app/dashboard`);
+    console.log(`   🔌 WebSocket: wss://wss-lnz1-production.up.railway.app/wss`);
+    console.log(`   📱 Cliente:   https://wss-lnz1-production.up.railway.app/cliente\n`);
 });
